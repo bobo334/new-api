@@ -142,7 +142,7 @@ New API提供了丰富的功能，详细特性请参考[特性说明](https://do
 详细部署指南请参考[安装指南-部署方式](https://docs.newapi.pro/installation)：
 
 > [!TIP]
-> 最新版Docker镜像：`calciumion/new-api:latest`  
+> 最新版Docker镜像：`bobo642/new-api:latest`  
 
 ### 多机部署注意事项
 - 必须设置环境变量 `SESSION_SECRET`，否则会导致多机部署时登录状态不一致
@@ -159,7 +159,7 @@ New API提供了丰富的功能，详细特性请参考[特性说明](https://do
 [图文教程](./docs/BT.md)
 
 #### 使用Docker Compose部署（推荐）
-```shell
+``shell
 # 下载项目
 git clone https://github.com/Calcium-Ion/new-api.git
 cd new-api
@@ -169,12 +169,12 @@ docker-compose up -d
 ```
 
 #### 直接使用Docker镜像
-```shell
+``shell
 # 使用SQLite
-docker run --name new-api -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data calciumion/new-api:latest
+docker run --name new-api -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data bobo642/new-api:latest
 
 # 使用MySQL
-docker run --name new-api -d --restart always -p 3000:3000 -e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi" -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data calciumion/new-api:latest
+docker run --name new-api -d --restart always -p 3000:3000 -e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi" -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data bobo642/new-api:latest
 ```
 
 ## 渠道重试与缓存

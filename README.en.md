@@ -142,7 +142,7 @@ For detailed configuration instructions, please refer to [Installation Guide-Env
 For detailed deployment guides, please refer to [Installation Guide-Deployment Methods](https://docs.newapi.pro/installation):
 
 > [!TIP]
-> Latest Docker image: `calciumion/new-api:latest`
+> Latest Docker image: `bobo642/new-api:latest`
 
 ### Multi-machine Deployment Considerations
 - Environment variable `SESSION_SECRET` must be set, otherwise login status will be inconsistent across multiple machines
@@ -159,7 +159,7 @@ Install BaoTa Panel (version **9.2.0** or above), find **New-API** in the applic
 [Tutorial with images](./docs/BT.md)
 
 #### Using Docker Compose (Recommended)
-```shell
+``shell
 # Download the project
 git clone https://github.com/Calcium-Ion/new-api.git
 cd new-api
@@ -169,12 +169,12 @@ docker-compose up -d
 ```
 
 #### Using Docker Image Directly
-```shell
+``shell
 # Using SQLite
-docker run --name new-api -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data calciumion/new-api:latest
+docker run --name new-api -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data bobo642/new-api:latest
 
 # Using MySQL
-docker run --name new-api -d --restart always -p 3000:3000 -e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi" -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data calciumion/new-api:latest
+docker run --name new-api -d --restart always -p 3000:3000 -e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi" -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data bobo642/new-api:latest
 ```
 
 ## Channel Retry and Cache
