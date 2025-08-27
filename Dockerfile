@@ -23,11 +23,9 @@ COPY . .
 COPY --from=builder /build/dist ./web/dist
 RUN go build -ldflags "-s -w -X 'one-api/common.Version=$(cat VERSION)'" -o one-api
 
-FROM alpine
+FROM debian:stable-slim
 
-RUN apk upgrade --no-cache \
-    && apk add --no-cache ca-certificates tzdata ffmpeg \
-    && update-ca-certificates
+RUN apt-get update && apt-get install -y ca-certificates tzdata ffmpeg && apt-get clean
 
 COPY --from=builder2 /build/one-api /
 EXPOSE 3000

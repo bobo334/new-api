@@ -1,9 +1,9 @@
-name: Publish Docker image (alpha)
+name: Publish Docker image (debian)
 
 on:
   push:
     branches:
-      - alpha
+      - debian
   workflow_dispatch:
     inputs:
       name:
@@ -23,7 +23,7 @@ jobs:
 
       - name: Save version info
         run: |
-          echo "alpha-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)" > VERSION
+          echo "debian-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)" > VERSION
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
@@ -49,8 +49,8 @@ jobs:
             calciumion/new-api
             ghcr.io/${{ github.repository }}
           tags: |
-            type=raw,value=alpha
-            type=raw,value=alpha-{{date 'YYYYMMDD'}}-{{sha}}
+            type=raw,value=debian
+            type=raw,value=debian-{{date 'YYYYMMDD'}}-{{sha}}
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
