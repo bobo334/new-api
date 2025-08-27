@@ -65,26 +65,10 @@ jobs:
         with:
           images: |
             calciumion/new-api
-tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+            ghcr.io/${{ github.repository }}
 
-      - name: Build & push single-arch (to both registries)
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          platforms: ${{ matrix.platform }}
-          push: true
-<<<<<<< HEAD:.github/workflows/docker-image-alpha.yml
-          tags: |
-            calciumion/new-api:alpha-${{ matrix.arch }}
-            calciumion/new-api:${{ steps.version.outputs.value }}-${{ matrix.arch }}
-            ghcr.io/${{ env.GHCR_REPOSITORY }}:alpha-${{ matrix.arch }}
-            ghcr.io/${{ env.GHCR_REPOSITORY }}:${{ steps.version.outputs.value }}-${{ matrix.arch }}
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          provenance: false
-          sbom: false
 
   create_manifests:
     name: Create multi-arch manifests (Docker Hub + GHCR)

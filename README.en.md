@@ -103,9 +103,59 @@
 
 ### Using Docker Compose (Recommended)
 
-```bash
-# Clone the project
-git clone https://github.com/QuantumNous/new-api.git
+1. Third-party models **gpts** (gpt-4-gizmo-*)
+2. Third-party channel [Midjourney-Proxy(Plus)](https://github.com/novicezk/midjourney-proxy) interface, [API Documentation](https://docs.newapi.pro/api/midjourney-proxy-image)
+3. Third-party channel [Suno API](https://github.com/Suno-API/Suno-API) interface, [API Documentation](https://docs.newapi.pro/api/suno-music)
+4. Custom channels, supporting full call address input
+5. Rerank models ([Cohere](https://cohere.ai/) and [Jina](https://jina.ai/)), [API Documentation](https://docs.newapi.pro/api/jinaai-rerank)
+6. Claude Messages format, [API Documentation](https://docs.newapi.pro/api/anthropic-chat)
+7. Dify, currently only supports chatflow
+
+## Environment Variable Configuration
+
+For detailed configuration instructions, please refer to [Installation Guide-Environment Variables Configuration](https://docs.newapi.pro/installation/environment-variables):
+
+- `GENERATE_DEFAULT_TOKEN`: Whether to generate initial tokens for newly registered users, default is `false`
+- `STREAMING_TIMEOUT`: Streaming response timeout, default is 300 seconds
+- `DIFY_DEBUG`: Whether to output workflow and node information for Dify channels, default is `true`
+- `FORCE_STREAM_OPTION`: Whether to override client stream_options parameter, default is `true`
+- `GET_MEDIA_TOKEN`: Whether to count image tokens, default is `true`
+- `GET_MEDIA_TOKEN_NOT_STREAM`: Whether to count image tokens in non-streaming cases, default is `true`
+- `UPDATE_TASK`: Whether to update asynchronous tasks (Midjourney, Suno), default is `true`
+- `COHERE_SAFETY_SETTING`: Cohere model safety settings, options are `NONE`, `CONTEXTUAL`, `STRICT`, default is `NONE`
+- `GEMINI_VISION_MAX_IMAGE_NUM`: Maximum number of images for Gemini models, default is `16`
+- `MAX_FILE_DOWNLOAD_MB`: Maximum file download size in MB, default is `20`
+- `CRYPTO_SECRET`: Encryption key used for encrypting database content
+- `AZURE_DEFAULT_API_VERSION`: Azure channel default API version, default is `2025-04-01-preview`
+- `NOTIFICATION_LIMIT_DURATION_MINUTE`: Notification limit duration, default is `10` minutes
+- `NOTIFY_LIMIT_COUNT`: Maximum number of user notifications within the specified duration, default is `2`
+- `ERROR_LOG_ENABLED=true`: Whether to record and display error logs, default is `false`
+
+## Deployment
+
+For detailed deployment guides, please refer to [Installation Guide-Deployment Methods](https://docs.newapi.pro/installation):
+
+> [!TIP]
+> Latest Docker image: `bobo642/new-api:latest`
+
+### Multi-machine Deployment Considerations
+- Environment variable `SESSION_SECRET` must be set, otherwise login status will be inconsistent across multiple machines
+- If sharing Redis, `CRYPTO_SECRET` must be set, otherwise Redis content cannot be accessed across multiple machines
+
+### Deployment Requirements
+- Local database (default): SQLite (Docker deployment must mount the `/data` directory)
+- Remote database: MySQL version >= 5.7.8, PgSQL version >= 9.6
+
+### Deployment Methods
+
+#### Using BaoTa Panel Docker Feature
+Install BaoTa Panel (version **9.2.0** or above), find **New-API** in the application store and install it.
+[Tutorial with images](./docs/BT.md)
+
+#### Using Docker Compose (Recommended)
+``shell
+# Download the project
+git clone https://github.com/Calcium-Ion/new-api.git
 cd new-api
 
 # Edit docker-compose.yml configuration
@@ -115,27 +165,13 @@ nano docker-compose.yml
 docker-compose up -d
 ```
 
-<details>
-<summary><strong>Using Docker Commands</strong></summary>
-
-```bash
-# Pull the latest image
-docker pull calciumion/new-api:latest
-
-# Using SQLite (default)
-docker run --name new-api -d --restart always \
-  -p 3000:3000 \
-  -e TZ=Asia/Shanghai \
-  -v ./data:/data \
-  calciumion/new-api:latest
+#### Using Docker Image Directly
+``shell
+# Using SQLite
+docker run --name new-api -d --restart always -p 3000:3000 -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data bobo642/new-api:latest
 
 # Using MySQL
-docker run --name new-api -d --restart always \
-  -p 3000:3000 \
-  -e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi" \
-  -e TZ=Asia/Shanghai \
-  -v ./data:/data \
-  calciumion/new-api:latest
+docker run --name new-api -d --restart always -p 3000:3000 -e SQL_DSN="root:123456@tcp(localhost:3306)/oneapi" -e TZ=Asia/Shanghai -v /home/ubuntu/data/new-api:/data bobo642/new-api:latest
 ```
 
 > **💡 Tip:** `-v ./data:/data` will save data in the `data` folder of the current directory, you can also change it to an absolute path like `-v /your/custom/path:/data`
