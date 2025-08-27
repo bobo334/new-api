@@ -1,9 +1,9 @@
-name: Publish Docker image (alpha)
+name: Publish Docker image (debian)
 
 on:
   push:
     branches:
-      - alpha
+      - debian
   workflow_dispatch:
     inputs:
       name:
@@ -36,15 +36,13 @@ jobs:
       - name: Determine alpha version
         id: version
         run: |
-          VERSION="alpha-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
+          VERSION="debian-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
           echo "$VERSION" > VERSION
           echo "value=$VERSION" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Publishing version: $VERSION for ${{ matrix.arch }}"
-
       - name: Normalize GHCR repository
         run: echo "GHCR_REPOSITORY=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -67,7 +65,8 @@ jobs:
         with:
           images: |
             calciumion/new-api
-            ghcr.io/${{ env.GHCR_REPOSITORY }}
+tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
 
       - name: Build & push single-arch (to both registries)
         uses: docker/build-push-action@v6
@@ -75,6 +74,7 @@ jobs:
           context: .
           platforms: ${{ matrix.platform }}
           push: true
+<<<<<<< HEAD:.github/workflows/docker-image-alpha.yml
           tags: |
             calciumion/new-api:alpha-${{ matrix.arch }}
             calciumion/new-api:${{ steps.version.outputs.value }}-${{ matrix.arch }}
@@ -149,3 +149,7 @@ jobs:
             -t ghcr.io/${GHCR_REPOSITORY}:${VERSION} \
             ghcr.io/${GHCR_REPOSITORY}:${VERSION}-amd64 \
             ghcr.io/${GHCR_REPOSITORY}:${VERSION}-arm64
+=======
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+>>>>>>> aca2c527 (upload):.github/workflows/docker-image-debian.yml

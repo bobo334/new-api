@@ -27,12 +27,13 @@ RUN go build -ldflags "-s -w -X 'github.com/QuantumNous/new-api/common.Version=$
 
 FROM debian:bookworm-slim
 
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates tzdata libasan8 wget \
-    && rm -rf /var/lib/apt/lists/* \
-    && update-ca-certificates
+RUN apt-get update     && apt-get install -y --no-install-recommends ca-certificates tzdata ffmpeg wget libasan8     && rm -rf /var/lib/apt/lists/*     && update-ca-certificates
 
 COPY --from=builder2 /build/new-api /
 EXPOSE 3000
 WORKDIR /data
+<<<<<<< HEAD
 ENTRYPOINT ["/new-api"]
+=======
+ENTRYPOINT ["/new-api"]
+>>>>>>> aca2c527 (upload)
