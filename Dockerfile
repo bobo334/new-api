@@ -23,7 +23,7 @@ COPY . .
 COPY --from=builder /build/dist ./web/dist
 RUN go build -ldflags "-s -w -X 'one-api/common.Version=$(cat VERSION)'" -o one-api
 
-FROM debian:stable-slim
+FROM debian:13-slim
 
 RUN apt-get update && apt-get install -y ca-certificates tzdata ffmpeg && apt-get clean
 

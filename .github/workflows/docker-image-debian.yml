@@ -49,6 +49,7 @@ jobs:
             bobo642/new-api
             ghcr.io/${{ github.repository }}
           tags: |
+            type=raw,value=latest
             type=raw,value=debian
             type=raw,value=debian-{{date 'YYYYMMDD'}}-{{sha}}
 
