@@ -29,6 +29,8 @@ FROM debian:bookworm-slim
 
 RUN apt-get update     && apt-get install -y --no-install-recommends ca-certificates tzdata ffmpeg wget libasan8     && rm -rf /var/lib/apt/lists/*     && update-ca-certificates
 
+RUN apt-get update     && apt-get install -y --no-install-recommends ca-certificates tzdata ffmpeg wget libasan8     && rm -rf /var/lib/apt/lists/*     && update-ca-certificates
+
 COPY --from=builder2 /build/new-api /
 EXPOSE 3000
 WORKDIR /data
