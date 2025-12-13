@@ -1,22 +1,17 @@
 package dto
 
 import (
-	"encoding/json"
-
-	"github.com/QuantumNous/new-api/types"
+	"one-api/types"
 
 	"github.com/gin-gonic/gin"
 )
 
 type AudioRequest struct {
-	Model          string          `json:"model"`
-	Input          string          `json:"input"`
-	Voice          string          `json:"voice"`
-	Instructions   string          `json:"instructions,omitempty"`
-	ResponseFormat string          `json:"response_format,omitempty"`
-	Speed          float64         `json:"speed,omitempty"`
-	StreamFormat   string          `json:"stream_format,omitempty"`
-	Metadata       json.RawMessage `json:"metadata,omitempty"`
+	Model          string  `json:"model"`
+	Input          string  `json:"input"`
+	Voice          string  `json:"voice"`
+	Speed          float64 `json:"speed,omitempty"`
+	ResponseFormat string  `json:"response_format,omitempty"`
 }
 
 func (r *AudioRequest) GetTokenCountMeta() *types.TokenCountMeta {

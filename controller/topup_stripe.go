@@ -5,15 +5,14 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"one-api/common"
+	"one-api/model"
+	"one-api/setting"
+	"one-api/setting/operation_setting"
+	"one-api/setting/system_setting"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/setting"
-	"github.com/QuantumNous/new-api/setting/operation_setting"
-	"github.com/QuantumNous/new-api/setting/system_setting"
 
 	"github.com/gin-gonic/gin"
 	"github.com/stripe/stripe-go/v81"
@@ -84,13 +83,12 @@ func (*StripeAdaptor) RequestPay(c *gin.Context, req *StripePayRequest) {
 	}
 
 	topUp := &model.TopUp{
-		UserId:        id,
-		Amount:        req.Amount,
-		Money:         chargedMoney,
-		TradeNo:       referenceId,
-		PaymentMethod: PaymentMethodStripe,
-		CreateTime:    time.Now().Unix(),
-		Status:        common.TopUpStatusPending,
+		UserId:     id,
+		Amount:     req.Amount,
+		Money:      chargedMoney,
+		TradeNo:    referenceId,
+		CreateTime: time.Now().Unix(),
+		Status:     common.TopUpStatusPending,
 	}
 	err = topUp.Insert()
 	if err != nil {
@@ -220,15 +218,14 @@ func genStripeLink(referenceId string, customerId string, email string, amount i
 	params := &stripe.CheckoutSessionParams{
 		ClientReferenceID: stripe.String(referenceId),
 		SuccessURL:        stripe.String(system_setting.ServerAddress + "/console/log"),
-		CancelURL:         stripe.String(system_setting.ServerAddress + "/console/topup"),
+		CancelURL:         stripe.String(system_setting.ServerAddress + "/topup"),
 		LineItems: []*stripe.CheckoutSessionLineItemParams{
 			{
 				Price:    stripe.String(setting.StripePriceId),
 				Quantity: stripe.Int64(amount),
 			},
 		},
-		Mode:                stripe.String(string(stripe.CheckoutSessionModePayment)),
-		AllowPromotionCodes: stripe.Bool(setting.StripePromotionCodesEnabled),
+		Mode: stripe.String(string(stripe.CheckoutSessionModePayment)),
 	}
 
 	if "" == customerId {
@@ -260,7 +257,7 @@ func GetChargedAmount(count float64, user model.User) float64 {
 
 func getStripePayMoney(amount float64, group string) float64 {
 	originalAmount := amount
-	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeTokens {
+	if !common.DisplayInCurrencyEnabled {
 		amount = amount / common.QuotaPerUnit
 	}
 	// Using float64 for monetary calculations is acceptable here due to the small amounts involved
@@ -281,7 +278,7 @@ func getStripePayMoney(amount float64, group string) float64 {
 
 func getStripeMinTopup() int64 {
 	minTopup := setting.StripeMinTopUp
-	if operation_setting.GetQuotaDisplayType() == operation_setting.QuotaDisplayTypeTokens {
+	if !common.DisplayInCurrencyEnabled {
 		minTopup = minTopup * int(common.QuotaPerUnit)
 	}
 	return int64(minTopup)

@@ -1,6 +1,6 @@
 package common
 
-import "github.com/QuantumNous/new-api/constant"
+import "one-api/constant"
 
 // EndpointInfo 描述单个端点的默认请求信息
 // path: 上游路径
@@ -23,7 +23,6 @@ var defaultEndpointInfoMap = map[constant.EndpointType]EndpointInfo{
 	constant.EndpointTypeGemini:          {Path: "/v1beta/models/{model}:generateContent", Method: "POST"},
 	constant.EndpointTypeJinaRerank:      {Path: "/rerank", Method: "POST"},
 	constant.EndpointTypeImageGeneration: {Path: "/v1/images/generations", Method: "POST"},
-	constant.EndpointTypeEmbeddings:      {Path: "/v1/embeddings", Method: "POST"},
 }
 
 // GetDefaultEndpointInfo 返回指定端点类型的默认信息以及是否存在

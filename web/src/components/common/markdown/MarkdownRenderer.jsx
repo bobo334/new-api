@@ -181,8 +181,8 @@ export function PreCode(props) {
                 e.preventDefault();
                 e.stopPropagation();
                 if (ref.current) {
-                  const codeElement = ref.current.querySelector('code');
-                  const code = codeElement?.textContent ?? '';
+                  const code =
+                    ref.current.querySelector('code')?.innerText ?? '';
                   copy(code).then((success) => {
                     if (success) {
                       Toast.success(t('代码已复制到剪贴板'));

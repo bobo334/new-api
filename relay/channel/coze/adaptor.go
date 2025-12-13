@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"one-api/dto"
+	"one-api/relay/channel"
+	"one-api/relay/common"
+	"one-api/types"
 	"time"
-
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/relay/channel"
-	"github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/types"
 
 	"github.com/gin-gonic/gin"
 )

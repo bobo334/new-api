@@ -3,10 +3,9 @@ package model
 import (
 	"errors"
 	"fmt"
+	"one-api/common"
 	"strings"
 	"sync"
-
-	"github.com/QuantumNous/new-api/common"
 
 	"github.com/samber/lo"
 	"gorm.io/gorm"
@@ -103,7 +102,7 @@ func getChannelQuery(group string, model string, retry int) (*gorm.DB, error) {
 	return channelQuery, nil
 }
 
-func GetChannel(group string, model string, retry int) (*Channel, error) {
+func GetRandomSatisfiedChannel(group string, model string, retry int) (*Channel, error) {
 	var abilities []Ability
 
 	var err error = nil

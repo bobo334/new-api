@@ -1,9 +1,8 @@
 package dto
 
 import (
+	"one-api/types"
 	"strings"
-
-	"github.com/QuantumNous/new-api/types"
 
 	"github.com/gin-gonic/gin"
 )

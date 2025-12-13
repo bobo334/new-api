@@ -1,10 +1,7 @@
 package service
 
 import (
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/gin-gonic/gin"
+	"one-api/dto"
 )
 
 //func GetPromptTokens(textRequest dto.GeneralOpenAIRequest, relayMode int) (int, error) {
@@ -19,11 +16,11 @@ import (
 //	return 0, errors.New("unknown relay mode")
 //}
 
-func ResponseText2Usage(c *gin.Context, responseText string, modeName string, promptTokens int) *dto.Usage {
-	common.SetContextKey(c, constant.ContextKeyLocalCountTokens, true)
+func ResponseText2Usage(responseText string, modeName string, promptTokens int) *dto.Usage {
 	usage := &dto.Usage{}
 	usage.PromptTokens = promptTokens
-	usage.CompletionTokens = EstimateTokenByModel(modeName, responseText)
+	ctkm := CountTextToken(responseText, modeName)
+	usage.CompletionTokens = ctkm
 	usage.TotalTokens = usage.PromptTokens + usage.CompletionTokens
 	return usage
 }

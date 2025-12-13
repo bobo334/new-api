@@ -5,11 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
-	"github.com/QuantumNous/new-api/dto"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/types"
+	"one-api/dto"
+	relaycommon "one-api/relay/common"
+	"one-api/service"
+	"one-api/types"
 
 	"github.com/gin-gonic/gin"
 )

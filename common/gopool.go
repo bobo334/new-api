@@ -3,9 +3,8 @@ package common
 import (
 	"context"
 	"fmt"
-	"math"
-
 	"github.com/bytedance/gopkg/util/gopool"
+	"math"
 )
 
 var relayGoPool gopool.Pool

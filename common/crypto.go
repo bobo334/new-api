@@ -4,7 +4,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/hex"
-
 	"golang.org/x/crypto/bcrypt"
 )
 

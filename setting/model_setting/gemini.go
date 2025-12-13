@@ -1,7 +1,7 @@
 package model_setting
 
 import (
-	"github.com/QuantumNous/new-api/setting/config"
+	"one-api/setting/config"
 )
 
 // GeminiSettings 定义Gemini模型的配置
@@ -11,13 +11,13 @@ type GeminiSettings struct {
 	SupportedImagineModels                []string          `json:"supported_imagine_models"`
 	ThinkingAdapterEnabled                bool              `json:"thinking_adapter_enabled"`
 	ThinkingAdapterBudgetTokensPercentage float64           `json:"thinking_adapter_budget_tokens_percentage"`
-	FunctionCallThoughtSignatureEnabled   bool              `json:"function_call_thought_signature_enabled"`
 }
 
 // 默认配置
 var defaultGeminiSettings = GeminiSettings{
 	SafetySettings: map[string]string{
-		"default": "OFF",
+		"default":                       "OFF",
+		"HARM_CATEGORY_CIVIC_INTEGRITY": "BLOCK_NONE",
 	},
 	VersionSettings: map[string]string{
 		"default":        "v1beta",
@@ -29,7 +29,6 @@ var defaultGeminiSettings = GeminiSettings{
 	},
 	ThinkingAdapterEnabled:                false,
 	ThinkingAdapterBudgetTokensPercentage: 0.6,
-	FunctionCallThoughtSignatureEnabled:   true,
 }
 
 // 全局实例

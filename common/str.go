@@ -3,19 +3,12 @@ package common
 import (
 	"encoding/base64"
 	"encoding/json"
+	"math/rand"
 	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
 	"unsafe"
-
-	"github.com/samber/lo"
-)
-
-var (
-	maskURLPattern    = regexp.MustCompile(`(http|https)://[^\s/$.?#].[^\s]*`)
-	maskDomainPattern = regexp.MustCompile(`\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\b`)
-	maskIPPattern     = regexp.MustCompile(`\b(?:\d{1,3}\.){3}\d{1,3}\b`)
 )
 
 func GetStringIfEmpty(str string, defaultValue string) string {
@@ -26,10 +19,12 @@ func GetStringIfEmpty(str string, defaultValue string) string {
 }
 
 func GetRandomString(length int) string {
-	if length <= 0 {
-		return ""
+	//rand.Seed(time.Now().UnixNano())
+	key := make([]byte, length)
+	for i := 0; i < length; i++ {
+		key[i] = keyChars[rand.Intn(len(keyChars))]
 	}
-	return lo.RandomString(length, lo.AlphanumericCharset)
+	return string(key)
 }
 
 func MapToJsonStr(m map[string]interface{}) string {
@@ -175,7 +170,8 @@ func maskHostForPlainDomain(domain string) string {
 // api.openai.com -> ***.***.com
 func MaskSensitiveInfo(str string) string {
 	// Mask URLs
-	str = maskURLPattern.ReplaceAllStringFunc(str, func(urlStr string) string {
+	urlPattern := regexp.MustCompile(`(http|https)://[^\s/$.?#].[^\s]*`)
+	str = urlPattern.ReplaceAllStringFunc(str, func(urlStr string) string {
 		u, err := url.Parse(urlStr)
 		if err != nil {
 			return urlStr
@@ -228,12 +224,14 @@ func MaskSensitiveInfo(str string) string {
 	})
 
 	// Mask domain names without protocol (like openai.com, www.openai.com)
-	str = maskDomainPattern.ReplaceAllStringFunc(str, func(domain string) string {
+	domainPattern := regexp.MustCompile(`\b(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\b`)
+	str = domainPattern.ReplaceAllStringFunc(str, func(domain string) string {
 		return maskHostForPlainDomain(domain)
 	})
 
 	// Mask IP addresses
-	str = maskIPPattern.ReplaceAllString(str, "***.***.***.***")
+	ipPattern := regexp.MustCompile(`\b(?:\d{1,3}\.){3}\d{1,3}\b`)
+	str = ipPattern.ReplaceAllString(str, "***.***.***.***")
 
 	return str
 }

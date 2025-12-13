@@ -3,12 +3,11 @@ package service
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/logger"
-	"github.com/QuantumNous/new-api/model"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/types"
+	"one-api/common"
+	"one-api/logger"
+	"one-api/model"
+	relaycommon "one-api/relay/common"
+	"one-api/types"
 
 	"github.com/bytedance/gopkg/util/gopool"
 	"github.com/gin-gonic/gin"

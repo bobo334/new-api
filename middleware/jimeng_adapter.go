@@ -3,13 +3,12 @@ package middleware
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/gin-gonic/gin"
 	"io"
 	"net/http"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	relayconstant "github.com/QuantumNous/new-api/relay/constant"
-	"github.com/gin-gonic/gin"
+	"one-api/common"
+	"one-api/constant"
+	relayconstant "one-api/relay/constant"
 )
 
 func JimengRequestConvert() func(c *gin.Context) {

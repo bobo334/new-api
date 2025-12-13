@@ -4,10 +4,9 @@ import (
 	"context"
 	_ "embed"
 	"fmt"
-	"sync"
-
-	"github.com/QuantumNous/new-api/common"
 	"github.com/go-redis/redis/v8"
+	"one-api/common"
+	"sync"
 )
 
 //go:embed lua/rate_limit.lua

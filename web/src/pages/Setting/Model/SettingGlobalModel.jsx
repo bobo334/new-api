@@ -29,44 +29,23 @@ import {
 } from '../../../helpers';
 import { useTranslation } from 'react-i18next';
 
-const thinkingExample = JSON.stringify(
-  ['moonshotai/kimi-k2-thinking', 'kimi-k2-thinking'],
-  null,
-  2,
-);
-
-const defaultGlobalSettingInputs = {
-  'global.pass_through_request_enabled': false,
-  'global.thinking_model_blacklist': '[]',
-  'general_setting.ping_interval_enabled': false,
-  'general_setting.ping_interval_seconds': 60,
-};
-
 export default function SettingGlobalModel(props) {
   const { t } = useTranslation();
 
   const [loading, setLoading] = useState(false);
-  const [inputs, setInputs] = useState(defaultGlobalSettingInputs);
+  const [inputs, setInputs] = useState({
+    'global.pass_through_request_enabled': false,
+    'general_setting.ping_interval_enabled': false,
+    'general_setting.ping_interval_seconds': 60,
+  });
   const refForm = useRef();
-  const [inputsRow, setInputsRow] = useState(defaultGlobalSettingInputs);
-
-  const normalizeValueBeforeSave = (key, value) => {
-    if (key === 'global.thinking_model_blacklist') {
-      const text = typeof value === 'string' ? value.trim() : '';
-      return text === '' ? '[]' : value;
-    }
-    return value;
-  };
+  const [inputsRow, setInputsRow] = useState(inputs);
 
   function onSubmit() {
     const updateArray = compareObjects(inputs, inputsRow);
     if (!updateArray.length) return showWarning(t('你似乎并没有修改什么'));
     const requestQueue = updateArray.map((item) => {
-      const normalizedValue = normalizeValueBeforeSave(
-        item.key,
-        inputs[item.key],
-      );
-      let value = String(normalizedValue);
+      let value = String(inputs[item.key]);
 
       return API.put('/api/option/', {
         key: item.key,
@@ -95,30 +74,14 @@ export default function SettingGlobalModel(props) {
 
   useEffect(() => {
     const currentInputs = {};
-    for (const key of Object.keys(defaultGlobalSettingInputs)) {
-      if (props.options[key] !== undefined) {
-        let value = props.options[key];
-        if (key === 'global.thinking_model_blacklist') {
-          try {
-            value =
-              value && String(value).trim() !== ''
-                ? JSON.stringify(JSON.parse(value), null, 2)
-                : defaultGlobalSettingInputs[key];
-          } catch (error) {
-            value = defaultGlobalSettingInputs[key];
-          }
-        }
-        currentInputs[key] = value;
-      } else {
-        currentInputs[key] = defaultGlobalSettingInputs[key];
+    for (let key in props.options) {
+      if (Object.keys(inputs).includes(key)) {
+        currentInputs[key] = props.options[key];
       }
     }
-
     setInputs(currentInputs);
     setInputsRow(structuredClone(currentInputs));
-    if (refForm.current) {
-      refForm.current.setValues(currentInputs);
-    }
+    refForm.current.setValues(currentInputs);
   }, [props.options]);
 
   return (
@@ -142,39 +105,7 @@ export default function SettingGlobalModel(props) {
                     })
                   }
                   extraText={
-                    t('开启后，所有请求将直接透传给上游，不会进行任何处理（重定向和渠道适配也将失效）,请谨慎开启')
-                  }
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col span={24}>
-                <Form.TextArea
-                  label={t('禁用思考处理的模型列表')}
-                  field={'global.thinking_model_blacklist'}
-                  placeholder={
-                    t('例如：') +
-                    '\n' +
-                    thinkingExample
-                  }
-                  rows={4}
-                  rules={[
-                    {
-                      validator: (rule, value) => {
-                        if (!value || value.trim() === '') return true;
-                        return verifyJSON(value);
-                      },
-                      message: t('不是合法的 JSON 字符串'),
-                    },
-                  ]}
-                  extraText={t(
-                    '列出的模型将不会自动添加或移除-thinking/-nothinking 后缀',
-                  )}
-                  onChange={(value) =>
-                    setInputs({
-                      ...inputs,
-                      'global.thinking_model_blacklist': value,
-                    })
+                    '开启后，所有请求将直接透传给上游，不会进行任何处理（重定向和渠道适配也将失效）,请谨慎开启'
                   }
                 />
               </Col>
@@ -185,7 +116,7 @@ export default function SettingGlobalModel(props) {
                 <Col span={24}>
                   <Banner
                     type='warning'
-                    description={t('警告：启用保活后，如果已经写入保活数据后渠道出错，系统无法重试，如果必须开启，推荐设置尽可能大的Ping间隔')}
+                    description='警告：启用保活后，如果已经写入保活数据后渠道出错，系统无法重试，如果必须开启，推荐设置尽可能大的Ping间隔'
                   />
                 </Col>
               </Row>
@@ -200,7 +131,7 @@ export default function SettingGlobalModel(props) {
                         'general_setting.ping_interval_enabled': value,
                       })
                     }
-                    extraText={t('开启后，将定期发送ping数据保持连接活跃')}
+                    extraText={'开启后，将定期发送ping数据保持连接活跃'}
                   />
                 </Col>
                 <Col xs={24} sm={12} md={8} lg={8} xl={8}>
