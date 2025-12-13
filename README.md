@@ -32,10 +32,10 @@
 
 ## 📝 项目说明
 
-> [!NOTE]  
+> [!NOTE]
 > 本项目为开源项目，在[One API](https://github.com/songquanpeng/one-api)的基础上进行二次开发
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > - 本项目仅供个人学习使用，不保证稳定性，且不提供任何技术支持。
 > - 使用者必须在遵循 OpenAI 的[使用条款](https://openai.com/policies/terms-of-use)以及**法律法规**的情况下使用，不得用于非法用途。
 > - 根据[《生成式人工智能服务管理暂行办法》](http://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm)的要求，请勿对中国地区公众提供一切未经备案的生成式人工智能服务。
@@ -89,11 +89,11 @@ New API提供了丰富的功能，详细特性请参考[特性说明](https://do
 14. 支持使用路由/chat2link进入聊天界面
 15. 🧠 支持通过模型名称后缀设置 reasoning effort：
     1. OpenAI o系列模型
-        - 添加后缀 `-high` 设置为 high reasoning effort (例如: `o3-mini-high`)
-        - 添加后缀 `-medium` 设置为 medium reasoning effort (例如: `o3-mini-medium`)
-        - 添加后缀 `-low` 设置为 low reasoning effort (例如: `o3-mini-low`)
+     - 添加后缀 `-high` 设置为 high reasoning effort (例如: `o3-mini-high`)
+     - 添加后缀 `-medium` 设置为 medium reasoning effort (例如: `o3-mini-medium`)
+     - 添加后缀 `-low` 设置为 low reasoning effort (例如: `o3-mini-low`)
     2. Claude 思考模型
-        - 添加后缀 `-thinking` 启用思考模式 (例如: `claude-3-7-sonnet-20250219-thinking`)
+     - 添加后缀 `-thinking` 启用思考模式 (例如: `claude-3-7-sonnet-20250219-thinking`)
 16. 🔄 思考转内容功能
 17. 🔄 针对用户的模型限流功能
 18. 🔄 请求格式转换功能，支持以下三种格式转换：
@@ -104,10 +104,10 @@ New API提供了丰富的功能，详细特性请参考[特性说明](https://do
     1. 在 `系统设置-运营设置` 中设置 `提示缓存倍率` 选项
     2. 在渠道中设置 `提示缓存倍率`，范围 0-1，例如设置为 0.5 表示缓存命中时按照 50% 计费
     3. 支持的渠道：
-        - [x] OpenAI
-        - [x] Azure
-        - [x] DeepSeek
-        - [x] Claude
+     - [x] OpenAI
+     - [x] Azure
+     - [x] DeepSeek
+     - [x] Claude
 
 ## 模型支持
 
@@ -146,7 +146,7 @@ New API提供了丰富的功能，详细特性请参考[特性说明](https://do
 详细部署指南请参考[安装指南-部署方式](https://docs.newapi.pro/installation)：
 
 > [!TIP]
-> 最新版Docker镜像：`bobo642/new-api:latest`  
+> 最新版Docker镜像：`bobo642/new-api:latest`
 
 ### 多机部署注意事项
 - 必须设置环境变量 `SESSION_SECRET`，否则会导致多机部署时登录状态不一致

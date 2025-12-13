@@ -32,10 +32,10 @@
 
 ## 📝 Project Description
 
-> [!NOTE]  
+> [!NOTE]
 > This is an open-source project developed based on [One API](https://github.com/songquanpeng/one-api)
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > - This project is for personal learning purposes only, with no guarantee of stability or technical support.
 > - Users must comply with OpenAI's [Terms of Use](https://openai.com/policies/terms-of-use) and **applicable laws and regulations**, and must not use it for illegal purposes.
 > - According to the [《Interim Measures for the Management of Generative Artificial Intelligence Services》](http://www.cac.gov.cn/2023-07/13/c_1690898327029107.htm), please do not provide any unregistered generative AI services to the public in China.
@@ -89,21 +89,22 @@ New API offers a wide range of features, please refer to [Features Introduction]
 14. Support for entering chat interface via /chat2link route
 15. 🧠 Support for setting reasoning effort through model name suffixes:
     1. OpenAI o-series models
-        - Add `-high` suffix for high reasoning effort (e.g.: `o3-mini-high`)
-        - Add `-medium` suffix for medium reasoning effort (e.g.: `o3-mini-medium`)
-        - Add `-low` suffix for low reasoning effort (e.g.: `o3-mini-low`)
+     - Add `-high` suffix for high reasoning effort (e.g.: `o3-mini-high`)
+     - Add `-medium` suffix for medium reasoning effort (e.g.: `o3-mini-medium`)
+     - Add `-low` suffix for low reasoning effort (e.g.: `o3-mini-low`)
     2. Claude thinking models
-        - Add `-thinking` suffix to enable thinking mode (e.g.: `claude-3-7-sonnet-20250219-thinking`)
+     - Add `-thinking` suffix to enable thinking mode (e.g.: `claude-3-7-sonnet-20250219-thinking`)
 16. 🔄 Thinking-to-content functionality
 17. 🔄 Model rate limiting for users
 18. 💰 Cache billing support, which allows billing at a set ratio when cache is hit:
     1. Set the `Prompt Cache Ratio` option in `System Settings-Operation Settings`
-    2. Set `Prompt Cache Ratio` in the channel, range 0-1, e.g., setting to 0.5 means billing at 50% when cache is hit
+    2. Set `Prompt Cache Ratio` in the channel, range 0-1, e.g., setting to 0.5 means billing at 50%
+    when cache is hit
     3. Supported channels:
-        - [x] OpenAI
-        - [x] Azure
-        - [x] DeepSeek
-        - [x] Claude
+     - [x] OpenAI
+     - [x] Azure
+     - [x] DeepSeek
+     - [x] Claude
 
 ## Model Support
 
@@ -178,7 +179,8 @@ docker run --name new-api -d --restart always -p 3000:3000 -e SQL_DSN="root:1234
 ```
 
 ## Channel Retry and Cache
-Channel retry functionality has been implemented, you can set the number of retries in `Settings->Operation Settings->General Settings`. It is **recommended to enable caching**.
+Channel retry functionality has been implemented, you can set the number of retries in
+`Settings->Operation Settings->General Settings`. It is **recommended to enable caching**.
 
 ### Cache Configuration Method
 1. `REDIS_CONN_STRING`: Set Redis as cache
