@@ -2,10 +2,11 @@ package dto
 
 import (
 	"encoding/json"
-	"one-api/common"
-	"one-api/types"
 	"reflect"
 	"strings"
+
+	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,6 +28,10 @@ type ImageRequest struct {
 	PartialImages     json.RawMessage `json:"partial_images,omitempty"`
 	// Stream            bool            `json:"stream,omitempty"`
 	Watermark *bool `json:"watermark,omitempty"`
+	// zhipu 4v
+	WatermarkEnabled json.RawMessage `json:"watermark_enabled,omitempty"`
+	UserId           json.RawMessage `json:"user_id,omitempty"`
+	Image            json.RawMessage `json:"image,omitempty"`
 	// 用匿名参数接收额外参数
 	Extra map[string]json.RawMessage `json:"-"`
 }
@@ -74,14 +79,15 @@ func (r ImageRequest) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 
+	// 不能合并ExtraFields！！！！！！！！
 	// 合并 ExtraFields
-	for k, v := range r.Extra {
-		if _, exists := baseMap[k]; !exists {
-			baseMap[k] = v
-		}
-	}
+	//for k, v := range r.Extra {
+	//	if _, exists := baseMap[k]; !exists {
+	//		baseMap[k] = v
+	//	}
+	//}
 
-	return json.Marshal(baseMap)
+	return common.Marshal(baseMap)
 }
 
 func GetJSONFieldNames(t reflect.Type) map[string]struct{} {
