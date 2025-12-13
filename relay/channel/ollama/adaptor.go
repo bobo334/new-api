@@ -4,14 +4,12 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"strings"
-
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/relay/channel"
-	"github.com/QuantumNous/new-api/relay/channel/openai"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	relayconstant "github.com/QuantumNous/new-api/relay/constant"
-	"github.com/QuantumNous/new-api/types"
+	"one-api/dto"
+	"one-api/relay/channel"
+	"one-api/relay/channel/openai"
+	relaycommon "one-api/relay/common"
+	relayconstant "one-api/relay/constant"
+	"one-api/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -20,6 +18,7 @@ type Adaptor struct {
 }
 
 func (a *Adaptor) ConvertGeminiRequest(*gin.Context, *relaycommon.RelayInfo, *dto.GeminiChatRequest) (any, error) {
+	//TODO implement me
 	return nil, errors.New("not implemented")
 }
 
@@ -32,15 +31,16 @@ func (a *Adaptor) ConvertClaudeRequest(c *gin.Context, info *relaycommon.RelayIn
 	openaiRequest.(*dto.GeneralOpenAIRequest).StreamOptions = &dto.StreamOptions{
 		IncludeUsage: true,
 	}
-	// map to ollama chat request (Claude -> OpenAI -> Ollama chat)
-	return openAIChatToOllamaChat(c, openaiRequest.(*dto.GeneralOpenAIRequest))
+	return requestOpenAI2Ollama(c, openaiRequest.(*dto.GeneralOpenAIRequest))
 }
 
 func (a *Adaptor) ConvertAudioRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.AudioRequest) (io.Reader, error) {
+	//TODO implement me
 	return nil, errors.New("not implemented")
 }
 
 func (a *Adaptor) ConvertImageRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.ImageRequest) (any, error) {
+	//TODO implement me
 	return nil, errors.New("not implemented")
 }
 
@@ -48,13 +48,15 @@ func (a *Adaptor) Init(info *relaycommon.RelayInfo) {
 }
 
 func (a *Adaptor) GetRequestURL(info *relaycommon.RelayInfo) (string, error) {
-	if info.RelayMode == relayconstant.RelayModeEmbeddings {
+	if info.RelayFormat == types.RelayFormatClaude {
+		return info.ChannelBaseUrl + "/v1/chat/completions", nil
+	}
+	switch info.RelayMode {
+	case relayconstant.RelayModeEmbeddings:
 		return info.ChannelBaseUrl + "/api/embed", nil
+	default:
+		return relaycommon.GetFullRequestURL(info.ChannelBaseUrl, info.RequestURLPath, info.ChannelType), nil
 	}
-	if strings.Contains(info.RequestURLPath, "/v1/completions") || info.RelayMode == relayconstant.RelayModeCompletions {
-		return info.ChannelBaseUrl + "/api/generate", nil
-	}
-	return info.ChannelBaseUrl + "/api/chat", nil
 }
 
 func (a *Adaptor) SetupRequestHeader(c *gin.Context, req *http.Header, info *relaycommon.RelayInfo) error {
@@ -67,11 +69,7 @@ func (a *Adaptor) ConvertOpenAIRequest(c *gin.Context, info *relaycommon.RelayIn
 	if request == nil {
 		return nil, errors.New("request is nil")
 	}
-	// decide generate or chat
-	if strings.Contains(info.RequestURLPath, "/v1/completions") || info.RelayMode == relayconstant.RelayModeCompletions {
-		return openAIToGenerate(c, request)
-	}
-	return openAIChatToOllamaChat(c, request)
+	return requestOpenAI2Ollama(c, request)
 }
 
 func (a *Adaptor) ConvertRerankRequest(c *gin.Context, relayMode int, request dto.RerankRequest) (any, error) {
@@ -83,6 +81,7 @@ func (a *Adaptor) ConvertEmbeddingRequest(c *gin.Context, info *relaycommon.Rela
 }
 
 func (a *Adaptor) ConvertOpenAIResponsesRequest(c *gin.Context, info *relaycommon.RelayInfo, request dto.OpenAIResponsesRequest) (any, error) {
+	// TODO implement me
 	return nil, errors.New("not implemented")
 }
 
@@ -93,13 +92,15 @@ func (a *Adaptor) DoRequest(c *gin.Context, info *relaycommon.RelayInfo, request
 func (a *Adaptor) DoResponse(c *gin.Context, resp *http.Response, info *relaycommon.RelayInfo) (usage any, err *types.NewAPIError) {
 	switch info.RelayMode {
 	case relayconstant.RelayModeEmbeddings:
-		return ollamaEmbeddingHandler(c, info, resp)
+		usage, err = ollamaEmbeddingHandler(c, info, resp)
 	default:
 		if info.IsStream {
-			return ollamaStreamHandler(c, info, resp)
+			usage, err = openai.OaiStreamHandler(c, info, resp)
+		} else {
+			usage, err = openai.OpenaiHandler(c, info, resp)
 		}
-		return ollamaChatHandler(c, info, resp)
 	}
+	return
 }
 
 func (a *Adaptor) GetModelList() []string {

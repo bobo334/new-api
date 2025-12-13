@@ -3,11 +3,10 @@ package controller
 import (
 	"errors"
 	"net/http"
+	"one-api/common"
+	"one-api/model"
 	"strconv"
 	"unicode/utf8"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
 
 	"github.com/gin-gonic/gin"
 )

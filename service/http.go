@@ -5,9 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/logger"
+	"one-api/common"
+	"one-api/logger"
 
 	"github.com/gin-gonic/gin"
 )

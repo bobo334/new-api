@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relay/helper"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/types"
+	"one-api/common"
+	"one-api/constant"
+	"one-api/dto"
+	relaycommon "one-api/relay/common"
+	"one-api/relay/helper"
+	"one-api/service"
+	"one-api/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -121,8 +120,13 @@ func palmHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Respons
 		}, resp.StatusCode)
 	}
 	fullTextResponse := responsePaLM2OpenAI(&palmResponse)
-	usage := service.ResponseText2Usage(c, palmResponse.Candidates[0].Content, info.UpstreamModelName, info.GetEstimatePromptTokens())
-	fullTextResponse.Usage = *usage
+	completionTokens := service.CountTextToken(palmResponse.Candidates[0].Content, info.UpstreamModelName)
+	usage := dto.Usage{
+		PromptTokens:     info.PromptTokens,
+		CompletionTokens: completionTokens,
+		TotalTokens:      info.PromptTokens + completionTokens,
+	}
+	fullTextResponse.Usage = usage
 	jsonResponse, err := common.Marshal(fullTextResponse)
 	if err != nil {
 		return nil, types.NewError(err, types.ErrorCodeBadResponseBody)
@@ -130,5 +134,5 @@ func palmHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Respons
 	c.Writer.Header().Set("Content-Type", "application/json")
 	c.Writer.WriteHeader(resp.StatusCode)
 	service.IOCopyBytesGracefully(c, resp, jsonResponse)
-	return usage, nil
+	return &usage, nil
 }

@@ -47,7 +47,6 @@ import {
   createLoadingAssistantMessage,
   getTextContent,
   buildApiPayload,
-  encodeToBase64,
 } from '../../helpers';
 
 // Components
@@ -59,7 +58,6 @@ import {
 } from '../../components/playground/OptimizedComponents';
 import ChatArea from '../../components/playground/ChatArea';
 import FloatingButtons from '../../components/playground/FloatingButtons';
-import { PlaygroundProvider } from '../../contexts/PlaygroundContext';
 
 // 生成头像
 const generateAvatarDataUrl = (username) => {
@@ -74,7 +72,7 @@ const generateAvatarDataUrl = (username) => {
       <text x="50%" y="50%" dominant-baseline="central" text-anchor="middle" font-size="16" fill="#ffffff" font-family="sans-serif">${firstLetter}</text>
     </svg>
   `;
-  return `data:image/svg+xml;base64,${encodeToBase64(svg)}`;
+  return `data:image/svg+xml;base64,${btoa(svg)}`;
 };
 
 const Playground = () => {
@@ -437,26 +435,8 @@ const Playground = () => {
     setTimeout(() => saveMessagesImmediately([]), 0);
   }, [setMessage, saveMessagesImmediately]);
 
-  // 处理粘贴图片
-  const handlePasteImage = useCallback((base64Data) => {
-    if (!inputs.imageEnabled) {
-      return;
-    }
-    // 添加图片到 imageUrls 数组
-    const newUrls = [...(inputs.imageUrls || []), base64Data];
-    handleInputChange('imageUrls', newUrls);
-  }, [inputs.imageEnabled, inputs.imageUrls, handleInputChange]);
-
-  // Playground Context 值
-  const playgroundContextValue = {
-    onPasteImage: handlePasteImage,
-    imageUrls: inputs.imageUrls || [],
-    imageEnabled: inputs.imageEnabled || false,
-  };
-
   return (
-    <PlaygroundProvider value={playgroundContextValue}>
-      <div className='h-full'>
+    <div className='h-full'>
       <Layout className='h-full bg-transparent flex flex-col md:flex-row'>
         {(showSettings || !isMobile) && (
           <Layout.Sider
@@ -555,7 +535,6 @@ const Playground = () => {
         </Layout.Content>
       </Layout>
     </div>
-    </PlaygroundProvider>
   );
 };
 

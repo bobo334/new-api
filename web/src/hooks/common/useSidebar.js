@@ -17,7 +17,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 For commercial licensing, please contact support@quantumnous.com
 */
 
-import { useState, useEffect, useMemo, useContext, useRef } from 'react';
+import { useState, useEffect, useMemo, useContext } from 'react';
 import { StatusContext } from '../../context/Status';
 import { API } from '../../helpers';
 
@@ -29,13 +29,6 @@ export const useSidebar = () => {
   const [statusState] = useContext(StatusContext);
   const [userConfig, setUserConfig] = useState(null);
   const [loading, setLoading] = useState(true);
-  const instanceIdRef = useRef(null);
-  const hasLoadedOnceRef = useRef(false);
-
-  if (!instanceIdRef.current) {
-    const randomPart = Math.random().toString(16).slice(2);
-    instanceIdRef.current = `sidebar-${Date.now()}-${randomPart}`;
-  }
 
   // 默认配置
   const defaultAdminConfig = {
@@ -81,17 +74,9 @@ export const useSidebar = () => {
   }, [statusState?.status?.SidebarModulesAdmin]);
 
   // 加载用户配置的通用方法
-  const loadUserConfig = async ({ withLoading } = {}) => {
-    const shouldShowLoader =
-      typeof withLoading === 'boolean'
-        ? withLoading
-        : !hasLoadedOnceRef.current;
-
+  const loadUserConfig = async () => {
     try {
-      if (shouldShowLoader) {
-        setLoading(true);
-      }
-
+      setLoading(true);
       const res = await API.get('/api/user/self');
       if (res.data.success && res.data.data.sidebar_modules) {
         let config;
@@ -137,25 +122,18 @@ export const useSidebar = () => {
       });
       setUserConfig(defaultUserConfig);
     } finally {
-      if (shouldShowLoader) {
-        setLoading(false);
-      }
-      hasLoadedOnceRef.current = true;
+      setLoading(false);
     }
   };
 
   // 刷新用户配置的方法（供外部调用）
   const refreshUserConfig = async () => {
-    if (Object.keys(adminConfig).length > 0) {
-      await loadUserConfig({ withLoading: false });
+     if (Object.keys(adminConfig).length > 0) {
+      await loadUserConfig();
     }
 
     // 触发全局刷新事件，通知所有useSidebar实例更新
-    sidebarEventTarget.dispatchEvent(
-      new CustomEvent(SIDEBAR_REFRESH_EVENT, {
-        detail: { sourceId: instanceIdRef.current, skipLoader: true },
-      }),
-    );
+    sidebarEventTarget.dispatchEvent(new CustomEvent(SIDEBAR_REFRESH_EVENT));
   };
 
   // 加载用户配置
@@ -168,25 +146,16 @@ export const useSidebar = () => {
 
   // 监听全局刷新事件
   useEffect(() => {
-    const handleRefresh = (event) => {
-      if (event?.detail?.sourceId === instanceIdRef.current) {
-        return;
-      }
-
+    const handleRefresh = () => {
       if (Object.keys(adminConfig).length > 0) {
-        loadUserConfig({
-          withLoading: event?.detail?.skipLoader ? false : undefined,
-        });
+        loadUserConfig();
       }
     };
 
     sidebarEventTarget.addEventListener(SIDEBAR_REFRESH_EVENT, handleRefresh);
 
     return () => {
-      sidebarEventTarget.removeEventListener(
-        SIDEBAR_REFRESH_EVENT,
-        handleRefresh,
-      );
+      sidebarEventTarget.removeEventListener(SIDEBAR_REFRESH_EVENT, handleRefresh);
     };
   }, [adminConfig]);
 

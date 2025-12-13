@@ -1,9 +1,8 @@
 package zhipu_4v
 
 import (
+	"one-api/dto"
 	"time"
-
-	"github.com/QuantumNous/new-api/dto"
 )
 
 //	type ZhipuMessage struct {

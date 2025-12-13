@@ -3,13 +3,12 @@ package model
 import (
 	"fmt"
 	"log"
+	"one-api/common"
+	"one-api/constant"
 	"os"
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
 
 	"github.com/glebarez/sqlite"
 	"gorm.io/driver/mysql"
@@ -252,7 +251,6 @@ func migrateDB() error {
 		&Channel{},
 		&Token{},
 		&User{},
-		&PasskeyCredential{},
 		&Option{},
 		&Redemption{},
 		&Ability{},
@@ -285,7 +283,6 @@ func migrateDBFast() error {
 		{&Channel{}, "Channel"},
 		{&Token{}, "Token"},
 		{&User{}, "User"},
-		{&PasskeyCredential{}, "PasskeyCredential"},
 		{&Option{}, "Option"},
 		{&Redemption{}, "Redemption"},
 		{&Ability{}, "Ability"},

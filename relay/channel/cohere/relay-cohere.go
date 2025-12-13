@@ -5,15 +5,14 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"one-api/common"
+	"one-api/dto"
+	relaycommon "one-api/relay/common"
+	"one-api/relay/helper"
+	"one-api/service"
+	"one-api/types"
 	"strings"
 	"time"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/dto"
-	relaycommon "github.com/QuantumNous/new-api/relay/common"
-	"github.com/QuantumNous/new-api/relay/helper"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -165,7 +164,7 @@ func cohereStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http
 		}
 	})
 	if usage.PromptTokens == 0 {
-		usage = service.ResponseText2Usage(c, responseText, info.UpstreamModelName, info.GetEstimatePromptTokens())
+		usage = service.ResponseText2Usage(responseText, info.UpstreamModelName, info.PromptTokens)
 	}
 	return usage, nil
 }
@@ -225,9 +224,9 @@ func cohereRerankHandler(c *gin.Context, resp *http.Response, info *relaycommon.
 	}
 	usage := dto.Usage{}
 	if cohereResp.Meta.BilledUnits.InputTokens == 0 {
-		usage.PromptTokens = info.GetEstimatePromptTokens()
+		usage.PromptTokens = info.PromptTokens
 		usage.CompletionTokens = 0
-		usage.TotalTokens = info.GetEstimatePromptTokens()
+		usage.TotalTokens = info.PromptTokens
 	} else {
 		usage.PromptTokens = cohereResp.Meta.BilledUnits.InputTokens
 		usage.CompletionTokens = cohereResp.Meta.BilledUnits.OutputTokens

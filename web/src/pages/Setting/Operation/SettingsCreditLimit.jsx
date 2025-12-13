@@ -36,7 +36,6 @@ export default function SettingsCreditLimit(props) {
     PreConsumedQuota: '',
     QuotaForInviter: '',
     QuotaForInvitee: '',
-    'quota_setting.enable_free_model_pre_consume': true,
   });
   const refForm = useRef();
   const [inputsRow, setInputsRow] = useState(inputs);
@@ -162,21 +161,6 @@ export default function SettingsCreditLimit(props) {
                     setInputs({
                       ...inputs,
                       QuotaForInvitee: String(value),
-                    })
-                  }
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col>
-                <Form.Switch
-                  label={t('对免费模型启用预消耗')}
-                  field={'quota_setting.enable_free_model_pre_consume'}
-                  extraText={t('开启后，对免费模型（倍率为0，或者价格为0）的模型也会预消耗额度')}
-                  onChange={(value) =>
-                    setInputs({
-                      ...inputs,
-                      'quota_setting.enable_free_model_pre_consume': value,
                     })
                   }
                 />

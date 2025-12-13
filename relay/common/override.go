@@ -1,17 +1,14 @@
 package common
 
 import (
+	"encoding/json"
 	"fmt"
+	"github.com/tidwall/gjson"
+	"github.com/tidwall/sjson"
 	"regexp"
 	"strconv"
 	"strings"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/tidwall/gjson"
-	"github.com/tidwall/sjson"
 )
-
-var negativeIndexRegexp = regexp.MustCompile(`\.(-\d+)`)
 
 type ConditionOperation struct {
 	Path           string      `json:"path"`             // JSON路径
@@ -32,7 +29,7 @@ type ParamOperation struct {
 	Logic      string               `json:"logic,omitempty"`      // AND, OR (默认OR)
 }
 
-func ApplyParamOverride(jsonData []byte, paramOverride map[string]interface{}, conditionContext map[string]interface{}) ([]byte, error) {
+func ApplyParamOverride(jsonData []byte, paramOverride map[string]interface{}) ([]byte, error) {
 	if len(paramOverride) == 0 {
 		return jsonData, nil
 	}
@@ -40,7 +37,7 @@ func ApplyParamOverride(jsonData []byte, paramOverride map[string]interface{}, c
 	// 尝试断言为操作格式
 	if operations, ok := tryParseOperations(paramOverride); ok {
 		// 使用新方法
-		result, err := applyOperations(string(jsonData), operations, conditionContext)
+		result, err := applyOperations(string(jsonData), operations)
 		return []byte(result), err
 	}
 
@@ -125,13 +122,13 @@ func tryParseOperations(paramOverride map[string]interface{}) ([]ParamOperation,
 	return nil, false
 }
 
-func checkConditions(jsonStr, contextJSON string, conditions []ConditionOperation, logic string) (bool, error) {
+func checkConditions(jsonStr string, conditions []ConditionOperation, logic string) (bool, error) {
 	if len(conditions) == 0 {
 		return true, nil // 没有条件，直接通过
 	}
 	results := make([]bool, len(conditions))
 	for i, condition := range conditions {
-		result, err := checkSingleCondition(jsonStr, contextJSON, condition)
+		result, err := checkSingleCondition(jsonStr, condition)
 		if err != nil {
 			return false, err
 		}
@@ -155,13 +152,10 @@ func checkConditions(jsonStr, contextJSON string, conditions []ConditionOperatio
 	}
 }
 
-func checkSingleCondition(jsonStr, contextJSON string, condition ConditionOperation) (bool, error) {
+func checkSingleCondition(jsonStr string, condition ConditionOperation) (bool, error) {
 	// 处理负数索引
 	path := processNegativeIndex(jsonStr, condition.Path)
 	value := gjson.Get(jsonStr, path)
-	if !value.Exists() && contextJSON != "" {
-		value = gjson.Get(contextJSON, condition.Path)
-	}
 	if !value.Exists() {
 		if condition.PassMissingKey {
 			return true, nil
@@ -170,7 +164,7 @@ func checkSingleCondition(jsonStr, contextJSON string, condition ConditionOperat
 	}
 
 	// 利用gjson的类型解析
-	targetBytes, err := common.Marshal(condition.Value)
+	targetBytes, err := json.Marshal(condition.Value)
 	if err != nil {
 		return false, fmt.Errorf("failed to marshal condition value: %v", err)
 	}
@@ -188,7 +182,8 @@ func checkSingleCondition(jsonStr, contextJSON string, condition ConditionOperat
 }
 
 func processNegativeIndex(jsonStr string, path string) string {
-	matches := negativeIndexRegexp.FindAllStringSubmatch(path, -1)
+	re := regexp.MustCompile(`\.(-\d+)`)
+	matches := re.FindAllStringSubmatch(path, -1)
 
 	if len(matches) == 0 {
 		return path
@@ -242,11 +237,6 @@ func compareGjsonValues(jsonValue, targetValue gjson.Result, mode string) (bool,
 }
 
 func compareEqual(jsonValue, targetValue gjson.Result) (bool, error) {
-	// 对null值特殊处理：两个都是null返回true，一个是null另一个不是返回false
-	if jsonValue.Type == gjson.Null || targetValue.Type == gjson.Null {
-		return jsonValue.Type == gjson.Null && targetValue.Type == gjson.Null, nil
-	}
-
 	// 对布尔值特殊处理
 	if (jsonValue.Type == gjson.True || jsonValue.Type == gjson.False) &&
 		(targetValue.Type == gjson.True || targetValue.Type == gjson.False) {
@@ -296,7 +286,7 @@ func compareNumeric(jsonValue, targetValue gjson.Result, operator string) (bool,
 // applyOperationsLegacy 原参数覆盖方法
 func applyOperationsLegacy(jsonData []byte, paramOverride map[string]interface{}) ([]byte, error) {
 	reqMap := make(map[string]interface{})
-	err := common.Unmarshal(jsonData, &reqMap)
+	err := json.Unmarshal(jsonData, &reqMap)
 	if err != nil {
 		return nil, err
 	}
@@ -305,23 +295,14 @@ func applyOperationsLegacy(jsonData []byte, paramOverride map[string]interface{}
 		reqMap[key] = value
 	}
 
-	return common.Marshal(reqMap)
+	return json.Marshal(reqMap)
 }
 
-func applyOperations(jsonStr string, operations []ParamOperation, conditionContext map[string]interface{}) (string, error) {
-	var contextJSON string
-	if conditionContext != nil && len(conditionContext) > 0 {
-		ctxBytes, err := common.Marshal(conditionContext)
-		if err != nil {
-			return "", fmt.Errorf("failed to marshal condition context: %v", err)
-		}
-		contextJSON = string(ctxBytes)
-	}
-
+func applyOperations(jsonStr string, operations []ParamOperation) (string, error) {
 	result := jsonStr
 	for _, op := range operations {
 		// 检查条件是否满足
-		ok, err := checkConditions(result, contextJSON, op.Conditions, op.Logic)
+		ok, err := checkConditions(result, op.Conditions, op.Logic)
 		if err != nil {
 			return "", err
 		}
@@ -427,7 +408,7 @@ func mergeObjects(jsonStr, path string, value interface{}, keepOrigin bool) (str
 	var currentMap, newMap map[string]interface{}
 
 	// 解析当前值
-	if err := common.Unmarshal([]byte(current.Raw), &currentMap); err != nil {
+	if err := json.Unmarshal([]byte(current.Raw), &currentMap); err != nil {
 		return "", err
 	}
 	// 解析新值
@@ -435,8 +416,8 @@ func mergeObjects(jsonStr, path string, value interface{}, keepOrigin bool) (str
 	case map[string]interface{}:
 		newMap = v
 	default:
-		jsonBytes, _ := common.Marshal(v)
-		if err := common.Unmarshal(jsonBytes, &newMap); err != nil {
+		jsonBytes, _ := json.Marshal(v)
+		if err := json.Unmarshal(jsonBytes, &newMap); err != nil {
 			return "", err
 		}
 	}
@@ -451,32 +432,4 @@ func mergeObjects(jsonStr, path string, value interface{}, keepOrigin bool) (str
 		}
 	}
 	return sjson.Set(jsonStr, path, result)
-}
-
-// BuildParamOverrideContext 提供 ApplyParamOverride 可用的上下文信息。
-// 目前内置以下字段：
-//   - model：优先使用上游模型名（UpstreamModelName），若不存在则回落到原始模型名（OriginModelName）。
-//   - upstream_model：始终为通道映射后的上游模型名。
-//   - original_model：请求最初指定的模型名。
-func BuildParamOverrideContext(info *RelayInfo) map[string]interface{} {
-	if info == nil || info.ChannelMeta == nil {
-		return nil
-	}
-
-	ctx := make(map[string]interface{})
-	if info.UpstreamModelName != "" {
-		ctx["model"] = info.UpstreamModelName
-		ctx["upstream_model"] = info.UpstreamModelName
-	}
-	if info.OriginModelName != "" {
-		ctx["original_model"] = info.OriginModelName
-		if _, exists := ctx["model"]; !exists {
-			ctx["model"] = info.OriginModelName
-		}
-	}
-
-	if len(ctx) == 0 {
-		return nil
-	}
-	return ctx
 }

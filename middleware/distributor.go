@@ -4,19 +4,18 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"slices"
+	"one-api/common"
+	"one-api/constant"
+	"one-api/dto"
+	"one-api/model"
+	relayconstant "one-api/relay/constant"
+	"one-api/service"
+	"one-api/setting"
+	"one-api/setting/ratio_setting"
+	"one-api/types"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
-	"github.com/QuantumNous/new-api/dto"
-	"github.com/QuantumNous/new-api/model"
-	relayconstant "github.com/QuantumNous/new-api/relay/constant"
-	"github.com/QuantumNous/new-api/service"
-	"github.com/QuantumNous/new-api/setting/ratio_setting"
-	"github.com/QuantumNous/new-api/types"
 
 	"github.com/gin-gonic/gin"
 )
@@ -79,31 +78,30 @@ func Distribute() func(c *gin.Context) {
 					return
 				}
 				var selectGroup string
-				usingGroup := common.GetContextKeyString(c, constant.ContextKeyUsingGroup)
+				userGroup := common.GetContextKeyString(c, constant.ContextKeyUsingGroup)
 				// check path is /pg/chat/completions
 				if strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions") {
 					playgroundRequest := &dto.PlayGroundRequest{}
 					err = common.UnmarshalBodyReusable(c, playgroundRequest)
 					if err != nil {
-						abortWithOpenAiMessage(c, http.StatusBadRequest, "无效的playground请求, "+err.Error())
+						abortWithOpenAiMessage(c, http.StatusBadRequest, "无效的请求, "+err.Error())
 						return
 					}
 					if playgroundRequest.Group != "" {
-						if !service.GroupInUserUsableGroups(usingGroup, playgroundRequest.Group) && playgroundRequest.Group != usingGroup {
+						if !setting.GroupInUserUsableGroups(playgroundRequest.Group) && playgroundRequest.Group != userGroup {
 							abortWithOpenAiMessage(c, http.StatusForbidden, "无权访问该分组")
 							return
 						}
-						usingGroup = playgroundRequest.Group
-						common.SetContextKey(c, constant.ContextKeyUsingGroup, usingGroup)
+						userGroup = playgroundRequest.Group
 					}
 				}
-				channel, selectGroup, err = service.CacheGetRandomSatisfiedChannel(c, usingGroup, modelRequest.Model, 0)
+				channel, selectGroup, err = model.CacheGetRandomSatisfiedChannel(c, userGroup, modelRequest.Model, 0)
 				if err != nil {
-					showGroup := usingGroup
-					if usingGroup == "auto" {
+					showGroup := userGroup
+					if userGroup == "auto" {
 						showGroup = fmt.Sprintf("auto(%s)", selectGroup)
 					}
-					message := fmt.Sprintf("获取分组 %s 下模型 %s 的可用渠道失败（distributor）: %s", showGroup, modelRequest.Model, err.Error())
+					message := fmt.Sprintf("获取分组 %s 下模型 %s 的可用渠道失败（数据库一致性已被破坏，distributor）: %s", showGroup, modelRequest.Model, err.Error())
 					// 如果错误，但是渠道不为空，说明是数据库一致性问题
 					//if channel != nil {
 					//	common.SysError(fmt.Sprintf("渠道不存在：%d", channel.Id))
@@ -113,7 +111,7 @@ func Distribute() func(c *gin.Context) {
 					return
 				}
 				if channel == nil {
-					abortWithOpenAiMessage(c, http.StatusServiceUnavailable, fmt.Sprintf("分组 %s 下模型 %s 无可用渠道（distributor）", usingGroup, modelRequest.Model), string(types.ErrorCodeModelNotFound))
+					abortWithOpenAiMessage(c, http.StatusServiceUnavailable, fmt.Sprintf("分组 %s 下模型 %s 无可用渠道（distributor）", userGroup, modelRequest.Model), string(types.ErrorCodeModelNotFound))
 					return
 				}
 			}
@@ -122,20 +120,6 @@ func Distribute() func(c *gin.Context) {
 		SetupContextForSelectedChannel(c, channel, modelRequest.Model)
 		c.Next()
 	}
-}
-
-// getModelFromRequest 从请求中读取模型信息
-// 根据 Content-Type 自动处理：
-// - application/json
-// - application/x-www-form-urlencoded
-// - multipart/form-data
-func getModelFromRequest(c *gin.Context) (*ModelRequest, error) {
-	var modelRequest ModelRequest
-	err := common.UnmarshalBodyReusable(c, &modelRequest)
-	if err != nil {
-		return nil, errors.New("无效的请求, " + err.Error())
-	}
-	return &modelRequest, nil
 }
 
 func getModelRequest(c *gin.Context) (*ModelRequest, bool, error) {
@@ -153,7 +137,7 @@ func getModelRequest(c *gin.Context) (*ModelRequest, bool, error) {
 			midjourneyRequest := dto.MidjourneyRequest{}
 			err = common.UnmarshalBodyReusable(c, &midjourneyRequest)
 			if err != nil {
-				return nil, false, errors.New("无效的midjourney请求, " + err.Error())
+				return nil, false, err
 			}
 			midjourneyModel, mjErr, success := service.GetMjRequestModel(relayMode, &midjourneyRequest)
 			if mjErr != nil {
@@ -181,39 +165,10 @@ func getModelRequest(c *gin.Context) (*ModelRequest, bool, error) {
 		}
 		c.Set("platform", string(constant.TaskPlatformSuno))
 		c.Set("relay_mode", relayMode)
-	} else if strings.Contains(c.Request.URL.Path, "/v1/videos/") && strings.HasSuffix(c.Request.URL.Path, "/remix") {
-		relayMode := relayconstant.RelayModeVideoSubmit
-		c.Set("relay_mode", relayMode)
-		shouldSelectChannel = false
-	} else if strings.Contains(c.Request.URL.Path, "/v1/videos") {
-		//curl https://api.openai.com/v1/videos \
-		//  -H "Authorization: Bearer $OPENAI_API_KEY" \
-		//  -F "model=sora-2" \
-		//  -F "prompt=A calico cat playing a piano on stage"
-		//	-F input_reference="@image.jpg"
-		relayMode := relayconstant.RelayModeUnknown
-		if c.Request.Method == http.MethodPost {
-			relayMode = relayconstant.RelayModeVideoSubmit
-			req, err := getModelFromRequest(c)
-			if err != nil {
-				return nil, false, err
-			}
-			if req != nil {
-				modelRequest.Model = req.Model
-			}
-		} else if c.Request.Method == http.MethodGet {
-			relayMode = relayconstant.RelayModeVideoFetchByID
-			shouldSelectChannel = false
-		}
-		c.Set("relay_mode", relayMode)
 	} else if strings.Contains(c.Request.URL.Path, "/v1/video/generations") {
 		relayMode := relayconstant.RelayModeUnknown
 		if c.Request.Method == http.MethodPost {
-			req, err := getModelFromRequest(c)
-			if err != nil {
-				return nil, false, err
-			}
-			modelRequest.Model = req.Model
+			err = common.UnmarshalBodyReusable(c, &modelRequest)
 			relayMode = relayconstant.RelayModeVideoSubmit
 		} else if c.Request.Method == http.MethodGet {
 			relayMode = relayconstant.RelayModeVideoFetchByID
@@ -231,11 +186,10 @@ func getModelRequest(c *gin.Context) (*ModelRequest, bool, error) {
 		}
 		c.Set("relay_mode", relayMode)
 	} else if !strings.HasPrefix(c.Request.URL.Path, "/v1/audio/transcriptions") && !strings.Contains(c.Request.Header.Get("Content-Type"), "multipart/form-data") {
-		req, err := getModelFromRequest(c)
-		if err != nil {
-			return nil, false, err
-		}
-		modelRequest.Model = req.Model
+		err = common.UnmarshalBodyReusable(c, &modelRequest)
+	}
+	if err != nil {
+		return nil, false, errors.New("无效的请求, " + err.Error())
 	}
 	if strings.HasPrefix(c.Request.URL.Path, "/v1/realtime") {
 		//wss://api.openai.com/v1/realtime?model=gpt-4o-realtime-preview-2024-10-01
@@ -255,31 +209,20 @@ func getModelRequest(c *gin.Context) (*ModelRequest, bool, error) {
 		modelRequest.Model = common.GetStringIfEmpty(modelRequest.Model, "dall-e")
 	} else if strings.HasPrefix(c.Request.URL.Path, "/v1/images/edits") {
 		//modelRequest.Model = common.GetStringIfEmpty(c.PostForm("model"), "gpt-image-1")
-		contentType := c.ContentType()
-		if slices.Contains([]string{gin.MIMEPOSTForm, gin.MIMEMultipartPOSTForm}, contentType) {
-			req, err := getModelFromRequest(c)
-			if err == nil && req.Model != "" {
-				modelRequest.Model = req.Model
-			}
+		if strings.Contains(c.Request.Header.Get("Content-Type"), "multipart/form-data") {
+			modelRequest.Model = c.PostForm("model")
 		}
 	}
 	if strings.HasPrefix(c.Request.URL.Path, "/v1/audio") {
 		relayMode := relayconstant.RelayModeAudioSpeech
 		if strings.HasPrefix(c.Request.URL.Path, "/v1/audio/speech") {
-
 			modelRequest.Model = common.GetStringIfEmpty(modelRequest.Model, "tts-1")
 		} else if strings.HasPrefix(c.Request.URL.Path, "/v1/audio/translations") {
-			// 先尝试从请求读取
-			if req, err := getModelFromRequest(c); err == nil && req.Model != "" {
-				modelRequest.Model = req.Model
-			}
+			modelRequest.Model = common.GetStringIfEmpty(modelRequest.Model, c.PostForm("model"))
 			modelRequest.Model = common.GetStringIfEmpty(modelRequest.Model, "whisper-1")
 			relayMode = relayconstant.RelayModeAudioTranslation
 		} else if strings.HasPrefix(c.Request.URL.Path, "/v1/audio/transcriptions") {
-			// 先尝试从请求读取
-			if req, err := getModelFromRequest(c); err == nil && req.Model != "" {
-				modelRequest.Model = req.Model
-			}
+			modelRequest.Model = common.GetStringIfEmpty(modelRequest.Model, c.PostForm("model"))
 			modelRequest.Model = common.GetStringIfEmpty(modelRequest.Model, "whisper-1")
 			relayMode = relayconstant.RelayModeAudioTranscription
 		}
@@ -287,12 +230,10 @@ func getModelRequest(c *gin.Context) (*ModelRequest, bool, error) {
 	}
 	if strings.HasPrefix(c.Request.URL.Path, "/pg/chat/completions") {
 		// playground chat completions
-		req, err := getModelFromRequest(c)
+		err = common.UnmarshalBodyReusable(c, &modelRequest)
 		if err != nil {
-			return nil, false, err
+			return nil, false, errors.New("无效的请求, " + err.Error())
 		}
-		modelRequest.Model = req.Model
-		modelRequest.Group = req.Group
 		common.SetContextKey(c, constant.ContextKeyTokenGroup, modelRequest.Group)
 	}
 	return &modelRequest, shouldSelectChannel, nil

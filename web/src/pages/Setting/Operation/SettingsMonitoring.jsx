@@ -128,8 +128,7 @@ export default function SettingsMonitoring(props) {
                   onChange={(value) =>
                     setInputs({
                       ...inputs,
-                      'monitor_setting.auto_test_channel_minutes':
-                        parseInt(value),
+                      'monitor_setting.auto_test_channel_minutes': parseInt(value),
                     })
                   }
                 />

@@ -2,8 +2,7 @@ package setting
 
 import (
 	"encoding/json"
-
-	"github.com/QuantumNous/new-api/common"
+	"one-api/common"
 )
 
 var Chats = []map[string]string{

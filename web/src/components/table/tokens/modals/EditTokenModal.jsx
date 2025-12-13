@@ -66,14 +66,13 @@ const EditTokenModal = (props) => {
 
   const getInitValues = () => ({
     name: '',
-    remain_quota: 0,
+    remain_quota: 500000,
     expired_time: -1,
-    unlimited_quota: true,
+    unlimited_quota: false,
     model_limits_enabled: false,
     model_limits: [],
     allow_ips: '',
     group: '',
-    cross_group_retry: false,
     tokenCount: 1,
   });
 
@@ -138,12 +137,14 @@ const EditTokenModal = (props) => {
       if (statusState?.status?.default_use_auto_group) {
         if (localGroupOptions.some((group) => group.value === 'auto')) {
           localGroupOptions.sort((a, b) => (a.value === 'auto' ? -1 : 1));
+        } else {
+          localGroupOptions.unshift({ label: t('自动选择'), value: 'auto' });
         }
       }
       setGroups(localGroupOptions);
-      // if (statusState?.status?.default_use_auto_group && formApiRef.current) {
-      //   formApiRef.current.setValue('group', 'auto');
-      // }
+      if (statusState?.status?.default_use_auto_group && formApiRef.current) {
+        formApiRef.current.setValue('group', 'auto');
+      }
     } else {
       showError(t(message));
     }
@@ -378,16 +379,6 @@ const EditTokenModal = (props) => {
                       />
                     )}
                   </Col>
-                  <Col span={24} style={{ display: values.group === 'auto' ? 'block' : 'none' }}>
-                    <Form.Switch
-                      field='cross_group_retry'
-                      label={t('跨分组重试')}
-                      size='default'
-                      extraText={t(
-                        '开启后，当前分组渠道失败时会按顺序尝试下一个分组的渠道',
-                      )}
-                    />
-                  </Col>
                   <Col xs={24} sm={24} md={24} lg={10} xl={10}>
                     <Form.DatePicker
                       field='expired_time'
@@ -510,7 +501,7 @@ const EditTokenModal = (props) => {
                     <Form.Switch
                       field='unlimited_quota'
                       label={t('无限额度')}
-                      size='default'
+                      size='large'
                       extraText={t(
                         '令牌的额度仅用于限制令牌本身的最大额度使用量，实际的使用受到账户的剩余额度限制',
                       )}

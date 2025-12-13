@@ -4,9 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"io"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/constant"
+	"one-api/common"
+	"one-api/constant"
 
 	"github.com/gin-gonic/gin"
 )

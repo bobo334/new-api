@@ -5,11 +5,10 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"one-api/setting/console_setting"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/QuantumNous/new-api/setting/console_setting"
 
 	"github.com/gin-gonic/gin"
 	"golang.org/x/sync/errgroup"

@@ -2,11 +2,10 @@ package middleware
 
 import (
 	"fmt"
-	"net/http"
-	"runtime/debug"
-
-	"github.com/QuantumNous/new-api/common"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"one-api/common"
+	"runtime/debug"
 )
 
 func RelayPanicRecover() gin.HandlerFunc {

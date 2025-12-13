@@ -29,7 +29,6 @@ const (
 	Gemini25FlashLitePreviewInputAudioPrice = 0.50
 	Gemini25FlashNativeAudioInputAudioPrice = 3.00
 	Gemini20FlashInputAudioPrice            = 0.70
-	GeminiRoboticsER15InputAudioPrice       = 1.00
 )
 
 const (
@@ -75,8 +74,6 @@ func GetGeminiInputAudioPricePerMillionTokens(modelName string) float64 {
 		return Gemini25FlashProductionInputAudioPrice
 	} else if strings.HasPrefix(modelName, "gemini-2.0-flash") {
 		return Gemini20FlashInputAudioPrice
-	} else if strings.HasPrefix(modelName, "gemini-robotics-er-1.5") {
-		return GeminiRoboticsER15InputAudioPrice
 	}
 	return 0
 }

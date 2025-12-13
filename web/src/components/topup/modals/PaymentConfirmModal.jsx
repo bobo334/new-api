@@ -40,10 +40,9 @@ const PaymentConfirmModal = ({
   amountNumber,
   discountRate,
 }) => {
-  const hasDiscount =
-    discountRate && discountRate > 0 && discountRate < 1 && amountNumber > 0;
-  const originalAmount = hasDiscount ? amountNumber / discountRate : 0;
-  const discountAmount = hasDiscount ? originalAmount - amountNumber : 0;
+  const hasDiscount = discountRate && discountRate > 0 && discountRate < 1 && amountNumber > 0;
+  const originalAmount = hasDiscount ? (amountNumber / discountRate) : 0;
+  const discountAmount = hasDiscount ? (originalAmount - amountNumber) : 0;
   return (
     <Modal
       title={

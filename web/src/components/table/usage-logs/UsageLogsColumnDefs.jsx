@@ -419,7 +419,7 @@ export const getLogsColumns = ({
     },
     {
       key: COLUMN_KEYS.PROMPT,
-      title: t('输入'),
+      title: t('提示'),
       dataIndex: 'prompt_tokens',
       render: (text, record, index) => {
         return record.type === 0 || record.type === 2 || record.type === 5 ? (
@@ -431,7 +431,7 @@ export const getLogsColumns = ({
     },
     {
       key: COLUMN_KEYS.COMPLETION,
-      title: t('输出'),
+      title: t('补全'),
       dataIndex: 'completion_tokens',
       render: (text, record, index) => {
         return parseInt(text) > 0 &&
@@ -551,10 +551,6 @@ export const getLogsColumns = ({
               other.cache_ratio || 1.0,
               other.cache_creation_tokens || 0,
               other.cache_creation_ratio || 1.0,
-              other.cache_creation_tokens_5m || 0,
-              other.cache_creation_ratio_5m || other.cache_creation_ratio || 1.0,
-              other.cache_creation_tokens_1h || 0,
-              other.cache_creation_ratio_1h || other.cache_creation_ratio || 1.0,
               false,
               1.0,
               other?.is_system_prompt_overwritten,
@@ -567,10 +563,6 @@ export const getLogsColumns = ({
               other?.user_group_ratio,
               other.cache_tokens || 0,
               other.cache_ratio || 1.0,
-              0,
-              1.0,
-              0,
-              1.0,
               0,
               1.0,
               false,

@@ -6,13 +6,12 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"one-api/common"
+	"one-api/model"
+	"one-api/setting/system_setting"
 	"strconv"
 	"strings"
 	"time"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
-	"github.com/QuantumNous/new-api/setting/system_setting"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"

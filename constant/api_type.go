@@ -31,9 +31,6 @@ const (
 	APITypeXai
 	APITypeCoze
 	APITypeJimeng
-	APITypeMoonshot
-	APITypeSubmodel
-	APITypeMiniMax
-	APITypeReplicate
-	APITypeDummy // this one is only for count, do not add any channel after this
+	APITypeMoonshot // this one is only for count, do not add any channel after this
+	APITypeDummy    // this one is only for count, do not add any channel after this
 )

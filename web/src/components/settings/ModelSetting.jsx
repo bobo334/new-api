@@ -37,7 +37,6 @@ const ModelSetting = () => {
     'claude.default_max_tokens': '',
     'claude.thinking_adapter_budget_tokens_percentage': 0.8,
     'global.pass_through_request_enabled': false,
-    'global.thinking_model_blacklist': '[]',
     'general_setting.ping_interval_enabled': false,
     'general_setting.ping_interval_seconds': 60,
     'gemini.thinking_adapter_enabled': false,
@@ -57,8 +56,7 @@ const ModelSetting = () => {
           item.key === 'gemini.version_settings' ||
           item.key === 'claude.model_headers_settings' ||
           item.key === 'claude.default_max_tokens' ||
-          item.key === 'gemini.supported_imagine_models' ||
-          item.key === 'global.thinking_model_blacklist'
+          item.key === 'gemini.supported_imagine_models'
         ) {
           if (item.value !== '') {
             item.value = JSON.stringify(JSON.parse(item.value), null, 2);

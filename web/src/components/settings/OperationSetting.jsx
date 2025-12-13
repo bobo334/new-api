@@ -35,7 +35,6 @@ const OperationSetting = () => {
     PreConsumedQuota: 0,
     QuotaForInviter: 0,
     QuotaForInvitee: 0,
-    'quota_setting.enable_free_model_pre_consume': true,
 
     /* 通用设置 */
     TopUpLink: '',
@@ -43,7 +42,7 @@ const OperationSetting = () => {
     QuotaPerUnit: 0,
     USDExchangeRate: 0,
     RetryTimes: 0,
-    'general_setting.quota_display_type': 'USD',
+    DisplayInCurrencyEnabled: false,
     DisplayTokenStatEnabled: false,
     DefaultCollapseSidebar: false,
     DemoSiteEnabled: false,

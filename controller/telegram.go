@@ -6,10 +6,9 @@ import (
 	"encoding/hex"
 	"io"
 	"net/http"
+	"one-api/common"
+	"one-api/model"
 	"sort"
-
-	"github.com/QuantumNous/new-api/common"
-	"github.com/QuantumNous/new-api/model"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -66,7 +65,7 @@ func TelegramBind(c *gin.Context) {
 		return
 	}
 
-	c.Redirect(302, "/console/personal")
+	c.Redirect(302, "/setting")
 }
 
 func TelegramLogin(c *gin.Context) {
