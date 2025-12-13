@@ -11,7 +11,7 @@ on:
         required: false
 jobs:
   push_to_registries:
-    name: Push Docker image to multiple registries
+    name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     permissions:
       packages: write
@@ -22,15 +22,12 @@ jobs:
 
       - name: Save version info
         run: |
-      - name: Save version info
-        run: |
           VERSION="debian-$(date +'%Y%m%d')-$(git rev-parse --short HEAD)"
           echo "$VERSION" > VERSION
           echo "value=$VERSION" >> $GITHUB_OUTPUT
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Publishing version: $VERSION"
-      - name: Normalize GHCR repository
-        run: echo "GHCR_REPOSITORY=${GITHUB_REPOSITORY,,}" >> $GITHUB_ENV
+      # No GHCR normalization needed; publishing to Docker Hub only
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -40,8 +37,6 @@ jobs:
         with:
           images: |
             bobo642/new-api
-            calciumion/new-api
-            ghcr.io/${{ github.repository }}
           tags: |
             type=raw,value=latest
             type=raw,value=debian
@@ -54,15 +49,7 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Log in to the Container registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      # No GHCR login required; using Docker Hub only
 
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
