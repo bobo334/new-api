@@ -38,6 +38,7 @@ i18n
       },
     },
     fallbackLng: 'zh',
+    nsSeparator: false,
     interpolation: {
       escapeValue: false,
     },

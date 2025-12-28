@@ -6,6 +6,10 @@ import (
 	"one-api/common"
 	"strings"
 
+<<<<<<< HEAD
+=======
+	"github.com/QuantumNous/new-api/common"
+>>>>>>> upstream/main
 	"github.com/bytedance/gopkg/util/gopool"
 	"gorm.io/gorm"
 )
@@ -33,26 +37,26 @@ func (token *Token) Clean() {
 	token.Key = ""
 }
 
-func (token *Token) GetIpLimitsMap() map[string]any {
+func (token *Token) GetIpLimits() []string {
 	// delete empty spaces
 	//split with \n
-	ipLimitsMap := make(map[string]any)
+	ipLimits := make([]string, 0)
 	if token.AllowIps == nil {
-		return ipLimitsMap
+		return ipLimits
 	}
 	cleanIps := strings.ReplaceAll(*token.AllowIps, " ", "")
 	if cleanIps == "" {
-		return ipLimitsMap
+		return ipLimits
 	}
 	ips := strings.Split(cleanIps, "\n")
 	for _, ip := range ips {
 		ip = strings.TrimSpace(ip)
 		ip = strings.ReplaceAll(ip, ",", "")
-		if common.IsIP(ip) {
-			ipLimitsMap[ip] = true
+		if ip != "" {
+			ipLimits = append(ipLimits, ip)
 		}
 	}
-	return ipLimitsMap
+	return ipLimits
 }
 
 func GetAllUserTokens(userId int, startIdx int, num int) ([]*Token, error) {
@@ -111,7 +115,12 @@ func ValidateUserToken(key string) (token *Token, err error) {
 		}
 		return token, nil
 	}
-	return nil, errors.New("无效的令牌")
+	common.SysLog("ValidateUserToken: failed to get token: " + err.Error())
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, errors.New("无效的令牌")
+	} else {
+		return nil, errors.New("无效的令牌，数据库查询出错，请联系管理员")
+	}
 }
 
 func GetTokenByIds(id int, userId int) (*Token, error) {

@@ -95,7 +95,16 @@ func Distribute() func(c *gin.Context) {
 						userGroup = playgroundRequest.Group
 					}
 				}
+<<<<<<< HEAD
 				channel, selectGroup, err = model.CacheGetRandomSatisfiedChannel(c, userGroup, modelRequest.Model, 0)
+=======
+				channel, selectGroup, err = service.CacheGetRandomSatisfiedChannel(&service.RetryParam{
+					Ctx:        c,
+					ModelName:  modelRequest.Model,
+					TokenGroup: usingGroup,
+					Retry:      common.GetPointer(0),
+				})
+>>>>>>> upstream/main
 				if err != nil {
 					showGroup := userGroup
 					if userGroup == "auto" {
@@ -141,7 +150,7 @@ func getModelRequest(c *gin.Context) (*ModelRequest, bool, error) {
 			}
 			midjourneyModel, mjErr, success := service.GetMjRequestModel(relayMode, &midjourneyRequest)
 			if mjErr != nil {
-				return nil, false, fmt.Errorf(mjErr.Description)
+				return nil, false, fmt.Errorf("%s", mjErr.Description)
 			}
 			if midjourneyModel == "" {
 				if !success {

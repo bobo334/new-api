@@ -3,6 +3,7 @@ package controller
 import (
 	"errors"
 	"fmt"
+<<<<<<< HEAD
 	"one-api/common"
 	"one-api/constant"
 	"one-api/middleware"
@@ -10,6 +11,14 @@ import (
 	"one-api/types"
 	"time"
 
+=======
+
+	"github.com/QuantumNous/new-api/middleware"
+	"github.com/QuantumNous/new-api/model"
+	relaycommon "github.com/QuantumNous/new-api/relay/common"
+	"github.com/QuantumNous/new-api/types"
+
+>>>>>>> upstream/main
 	"github.com/gin-gonic/gin"
 )
 
@@ -49,12 +58,15 @@ func Playground(c *gin.Context) {
 		Group:  group,
 	}
 	_ = middleware.SetupContextForToken(c, tempToken)
+<<<<<<< HEAD
 	_, newAPIError = getChannel(c, group, modelName, 0)
 	if newAPIError != nil {
 		return
 	}
 	//middleware.SetupContextForSelectedChannel(c, channel, playgroundRequest.Model)
 	common.SetContextKey(c, constant.ContextKeyRequestStartTime, time.Now())
+=======
+>>>>>>> upstream/main
 
 	Relay(c, types.RelayFormatOpenAI)
 }

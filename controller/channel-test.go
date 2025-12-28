@@ -90,9 +90,21 @@ func testChannel(channel *model.Channel, testModel string) testResult {
 		requestPath = "/v1/embeddings" // 修改请求路径
 	}
 
+<<<<<<< HEAD
 	// VolcEngine 图像生成模型
 	if channel.Type == constant.ChannelTypeVolcEngine && strings.Contains(testModel, "seedream") {
 		requestPath = "/v1/images/generations"
+=======
+		// VolcEngine 图像生成模型
+		if channel.Type == constant.ChannelTypeVolcEngine && strings.Contains(testModel, "seedream") {
+			requestPath = "/v1/images/generations"
+		}
+
+		// responses-only models
+		if strings.Contains(strings.ToLower(testModel), "codex") {
+			requestPath = "/v1/responses"
+		}
+>>>>>>> upstream/main
 	}
 
 	c.Request = &http.Request{
@@ -163,6 +175,11 @@ func testChannel(channel *model.Channel, testModel string) testResult {
 	if c.Request.URL.Path == "/v1/images/generations" {
 		relayFormat = types.RelayFormatOpenAIImage
 	}
+<<<<<<< HEAD
+=======
+
+	request := buildTestRequest(testModel, endpointType, channel)
+>>>>>>> upstream/main
 
 	info, err := relaycommon.GenRelayInfo(c, relayFormat, request, nil)
 
@@ -275,6 +292,16 @@ func testChannel(channel *model.Channel, testModel string) testResult {
 		httpResp = resp.(*http.Response)
 		if httpResp.StatusCode != http.StatusOK {
 			err := service.RelayErrorHandler(c.Request.Context(), httpResp, true)
+			common.SysError(fmt.Sprintf(
+				"channel test bad response: channel_id=%d name=%s type=%d model=%s endpoint_type=%s status=%d err=%v",
+				channel.Id,
+				channel.Name,
+				channel.Type,
+				testModel,
+				endpointType,
+				httpResp.StatusCode,
+				err,
+			))
 			return testResult{
 				context:     c,
 				localErr:    err,
@@ -345,7 +372,83 @@ func testChannel(channel *model.Channel, testModel string) testResult {
 	}
 }
 
+<<<<<<< HEAD
 func buildTestRequest(model string) *dto.GeneralOpenAIRequest {
+=======
+func buildTestRequest(model string, endpointType string, channel *model.Channel) dto.Request {
+	// 根据端点类型构建不同的测试请求
+	if endpointType != "" {
+		switch constant.EndpointType(endpointType) {
+		case constant.EndpointTypeEmbeddings:
+			// 返回 EmbeddingRequest
+			return &dto.EmbeddingRequest{
+				Model: model,
+				Input: []any{"hello world"},
+			}
+		case constant.EndpointTypeImageGeneration:
+			// 返回 ImageRequest
+			return &dto.ImageRequest{
+				Model:  model,
+				Prompt: "a cute cat",
+				N:      1,
+				Size:   "1024x1024",
+			}
+		case constant.EndpointTypeJinaRerank:
+			// 返回 RerankRequest
+			return &dto.RerankRequest{
+				Model:     model,
+				Query:     "What is Deep Learning?",
+				Documents: []any{"Deep Learning is a subset of machine learning.", "Machine learning is a field of artificial intelligence."},
+				TopN:      2,
+			}
+		case constant.EndpointTypeOpenAIResponse:
+			// 返回 OpenAIResponsesRequest
+			return &dto.OpenAIResponsesRequest{
+				Model: model,
+				Input: json.RawMessage("\"hi\""),
+			}
+		case constant.EndpointTypeAnthropic, constant.EndpointTypeGemini, constant.EndpointTypeOpenAI:
+			// 返回 GeneralOpenAIRequest
+			maxTokens := uint(16)
+			if constant.EndpointType(endpointType) == constant.EndpointTypeGemini {
+				maxTokens = 3000
+			}
+			return &dto.GeneralOpenAIRequest{
+				Model:  model,
+				Stream: false,
+				Messages: []dto.Message{
+					{
+						Role:    "user",
+						Content: "hi",
+					},
+				},
+				MaxTokens: maxTokens,
+			}
+		}
+	}
+
+	// 自动检测逻辑（保持原有行为）
+	// 先判断是否为 Embedding 模型
+	if strings.Contains(strings.ToLower(model), "embedding") ||
+		strings.HasPrefix(model, "m3e") ||
+		strings.Contains(model, "bge-") {
+		// 返回 EmbeddingRequest
+		return &dto.EmbeddingRequest{
+			Model: model,
+			Input: []any{"hello world"},
+		}
+	}
+
+	// Responses-only models (e.g. codex series)
+	if strings.Contains(strings.ToLower(model), "codex") {
+		return &dto.OpenAIResponsesRequest{
+			Model: model,
+			Input: json.RawMessage("\"hi\""),
+		}
+	}
+
+	// Chat/Completion 请求 - 返回 GeneralOpenAIRequest
+>>>>>>> upstream/main
 	testRequest := &dto.GeneralOpenAIRequest{
 		Model:  "", // this will be set later
 		Stream: false,
@@ -362,7 +465,7 @@ func buildTestRequest(model string) *dto.GeneralOpenAIRequest {
 	}
 	// 并非Embedding 模型
 	if strings.HasPrefix(model, "o") {
-		testRequest.MaxCompletionTokens = 10
+		testRequest.MaxCompletionTokens = 16
 	} else if strings.Contains(model, "thinking") {
 		if !strings.Contains(model, "claude") {
 			testRequest.MaxTokens = 50
@@ -370,7 +473,7 @@ func buildTestRequest(model string) *dto.GeneralOpenAIRequest {
 	} else if strings.Contains(model, "gemini") {
 		testRequest.MaxTokens = 3000
 	} else {
-		testRequest.MaxTokens = 10
+		testRequest.MaxTokens = 16
 	}
 
 	testMessage := dto.Message{

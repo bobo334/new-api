@@ -4,13 +4,18 @@ import (
 	"one-api/setting/config"
 )
 
-// GeminiSettings 定义Gemini模型的配置
+// GeminiSettings defines Gemini model configuration. 注意bool要以enabled结尾才可以生效编辑
 type GeminiSettings struct {
 	SafetySettings                        map[string]string `json:"safety_settings"`
 	VersionSettings                       map[string]string `json:"version_settings"`
 	SupportedImagineModels                []string          `json:"supported_imagine_models"`
 	ThinkingAdapterEnabled                bool              `json:"thinking_adapter_enabled"`
 	ThinkingAdapterBudgetTokensPercentage float64           `json:"thinking_adapter_budget_tokens_percentage"`
+<<<<<<< HEAD
+=======
+	FunctionCallThoughtSignatureEnabled   bool              `json:"function_call_thought_signature_enabled"`
+	RemoveFunctionResponseIdEnabled       bool              `json:"remove_function_response_id_enabled"`
+>>>>>>> upstream/main
 }
 
 // 默认配置
@@ -29,6 +34,11 @@ var defaultGeminiSettings = GeminiSettings{
 	},
 	ThinkingAdapterEnabled:                false,
 	ThinkingAdapterBudgetTokensPercentage: 0.6,
+<<<<<<< HEAD
+=======
+	FunctionCallThoughtSignatureEnabled:   true,
+	RemoveFunctionResponseIdEnabled:       true,
+>>>>>>> upstream/main
 }
 
 // 全局实例

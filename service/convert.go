@@ -290,8 +290,102 @@ func StreamResponseOpenAI2Claude(openAIResponse *dto.ChatCompletionsStreamRespon
 		if chosenChoice.FinishReason != nil && *chosenChoice.FinishReason != "" {
 			// should be done
 			info.FinishReason = *chosenChoice.FinishReason
+<<<<<<< HEAD
 			if !info.Done {
 				return claudeResponses
+=======
+		}
+
+		var claudeResponse dto.ClaudeResponse
+		var isEmpty bool
+		claudeResponse.Type = "content_block_delta"
+		if len(chosenChoice.Delta.ToolCalls) > 0 {
+			toolCalls := chosenChoice.Delta.ToolCalls
+			if info.ClaudeConvertInfo.LastMessagesType != relaycommon.LastMessageTypeTools {
+				claudeResponses = append(claudeResponses, generateStopBlock(info.ClaudeConvertInfo.Index))
+				info.ClaudeConvertInfo.Index++
+			}
+			info.ClaudeConvertInfo.LastMessagesType = relaycommon.LastMessageTypeTools
+
+			for i, toolCall := range toolCalls {
+				blockIndex := info.ClaudeConvertInfo.Index
+				if toolCall.Index != nil {
+					blockIndex = *toolCall.Index
+				} else if len(toolCalls) > 1 {
+					blockIndex = info.ClaudeConvertInfo.Index + i
+				}
+
+				idx := blockIndex
+				if toolCall.Function.Name != "" {
+					claudeResponses = append(claudeResponses, &dto.ClaudeResponse{
+						Index: &idx,
+						Type:  "content_block_start",
+						ContentBlock: &dto.ClaudeMediaMessage{
+							Id:    toolCall.ID,
+							Type:  "tool_use",
+							Name:  toolCall.Function.Name,
+							Input: map[string]interface{}{},
+						},
+					})
+				}
+
+				if len(toolCall.Function.Arguments) > 0 {
+					claudeResponses = append(claudeResponses, &dto.ClaudeResponse{
+						Index: &idx,
+						Type:  "content_block_delta",
+						Delta: &dto.ClaudeMediaMessage{
+							Type:        "input_json_delta",
+							PartialJson: &toolCall.Function.Arguments,
+						},
+					})
+				}
+
+				info.ClaudeConvertInfo.Index = blockIndex
+			}
+		} else {
+			reasoning := chosenChoice.Delta.GetReasoningContent()
+			textContent := chosenChoice.Delta.GetContentString()
+			if reasoning != "" || textContent != "" {
+				if reasoning != "" {
+					if info.ClaudeConvertInfo.LastMessagesType != relaycommon.LastMessageTypeThinking {
+						claudeResponses = append(claudeResponses, &dto.ClaudeResponse{
+							Index: &info.ClaudeConvertInfo.Index,
+							Type:  "content_block_start",
+							ContentBlock: &dto.ClaudeMediaMessage{
+								Type:     "thinking",
+								Thinking: common.GetPointer[string](""),
+							},
+						})
+					}
+					info.ClaudeConvertInfo.LastMessagesType = relaycommon.LastMessageTypeThinking
+					claudeResponse.Delta = &dto.ClaudeMediaMessage{
+						Type:     "thinking_delta",
+						Thinking: &reasoning,
+					}
+				} else {
+					if info.ClaudeConvertInfo.LastMessagesType != relaycommon.LastMessageTypeText {
+						if info.ClaudeConvertInfo.LastMessagesType == relaycommon.LastMessageTypeThinking || info.ClaudeConvertInfo.LastMessagesType == relaycommon.LastMessageTypeTools {
+							claudeResponses = append(claudeResponses, generateStopBlock(info.ClaudeConvertInfo.Index))
+							info.ClaudeConvertInfo.Index++
+						}
+						claudeResponses = append(claudeResponses, &dto.ClaudeResponse{
+							Index: &info.ClaudeConvertInfo.Index,
+							Type:  "content_block_start",
+							ContentBlock: &dto.ClaudeMediaMessage{
+								Type: "text",
+								Text: common.GetPointer[string](""),
+							},
+						})
+					}
+					info.ClaudeConvertInfo.LastMessagesType = relaycommon.LastMessageTypeText
+					claudeResponse.Delta = &dto.ClaudeMediaMessage{
+						Type: "text_delta",
+						Text: common.GetPointer[string](textContent),
+					}
+				}
+			} else {
+				isEmpty = true
+>>>>>>> upstream/main
 			}
 		}
 		if info.Done {

@@ -15,6 +15,52 @@ type GeminiChatRequest struct {
 	GenerationConfig   GeminiChatGenerationConfig `json:"generationConfig,omitempty"`
 	Tools              json.RawMessage            `json:"tools,omitempty"`
 	SystemInstructions *GeminiChatContent         `json:"systemInstruction,omitempty"`
+<<<<<<< HEAD
+=======
+	CachedContent      string                     `json:"cachedContent,omitempty"`
+}
+
+// UnmarshalJSON allows GeminiChatRequest to accept both snake_case and camelCase fields.
+func (r *GeminiChatRequest) UnmarshalJSON(data []byte) error {
+	type Alias GeminiChatRequest
+	var aux struct {
+		Alias
+		SystemInstructionSnake *GeminiChatContent `json:"system_instruction,omitempty"`
+	}
+
+	if err := common.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	*r = GeminiChatRequest(aux.Alias)
+
+	if aux.SystemInstructionSnake != nil {
+		r.SystemInstructions = aux.SystemInstructionSnake
+	}
+
+	return nil
+}
+
+type ToolConfig struct {
+	FunctionCallingConfig *FunctionCallingConfig `json:"functionCallingConfig,omitempty"`
+	RetrievalConfig       *RetrievalConfig       `json:"retrievalConfig,omitempty"`
+}
+
+type FunctionCallingConfig struct {
+	Mode                 FunctionCallingConfigMode `json:"mode,omitempty"`
+	AllowedFunctionNames []string                  `json:"allowedFunctionNames,omitempty"`
+}
+type FunctionCallingConfigMode string
+
+type RetrievalConfig struct {
+	LatLng       *LatLng `json:"latLng,omitempty"`
+	LanguageCode string  `json:"languageCode,omitempty"`
+}
+
+type LatLng struct {
+	Latitude  *float64 `json:"latitude,omitempty"`
+	Longitude *float64 `json:"longitude,omitempty"`
+>>>>>>> upstream/main
 }
 
 func (r *GeminiChatRequest) GetTokenCountMeta() *types.TokenCountMeta {

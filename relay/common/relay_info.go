@@ -11,6 +11,16 @@ import (
 	"strings"
 	"time"
 
+<<<<<<< HEAD
+=======
+	"github.com/QuantumNous/new-api/common"
+	"github.com/QuantumNous/new-api/constant"
+	"github.com/QuantumNous/new-api/dto"
+	relayconstant "github.com/QuantumNous/new-api/relay/constant"
+	"github.com/QuantumNous/new-api/setting/model_setting"
+	"github.com/QuantumNous/new-api/types"
+
+>>>>>>> upstream/main
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 )
@@ -502,4 +512,48 @@ type TaskInfo struct {
 	Reason   string `json:"reason,omitempty"`
 	Url      string `json:"url,omitempty"`
 	Progress string `json:"progress,omitempty"`
+}
+
+// RemoveGeminiDisabledFields removes disabled fields from Gemini request JSON data
+// Currently supports removing functionResponse.id field which Vertex AI does not support
+func RemoveGeminiDisabledFields(jsonData []byte) ([]byte, error) {
+	if !model_setting.GetGeminiSettings().RemoveFunctionResponseIdEnabled {
+		return jsonData, nil
+	}
+
+	var data map[string]interface{}
+	if err := common.Unmarshal(jsonData, &data); err != nil {
+		common.SysError("RemoveGeminiDisabledFields Unmarshal error: " + err.Error())
+		return jsonData, nil
+	}
+
+	// Process contents array
+	// Handle both camelCase (functionResponse) and snake_case (function_response)
+	if contents, ok := data["contents"].([]interface{}); ok {
+		for _, content := range contents {
+			if contentMap, ok := content.(map[string]interface{}); ok {
+				if parts, ok := contentMap["parts"].([]interface{}); ok {
+					for _, part := range parts {
+						if partMap, ok := part.(map[string]interface{}); ok {
+							// Check functionResponse (camelCase)
+							if funcResp, ok := partMap["functionResponse"].(map[string]interface{}); ok {
+								delete(funcResp, "id")
+							}
+							// Check function_response (snake_case)
+							if funcResp, ok := partMap["function_response"].(map[string]interface{}); ok {
+								delete(funcResp, "id")
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	jsonDataAfter, err := common.Marshal(data)
+	if err != nil {
+		common.SysError("RemoveGeminiDisabledFields Marshal error: " + err.Error())
+		return jsonData, nil
+	}
+	return jsonDataAfter, nil
 }

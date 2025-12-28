@@ -39,6 +39,19 @@ const GEMINI_VERSION_EXAMPLE = {
   default: 'v1beta',
 };
 
+<<<<<<< HEAD
+=======
+const DEFAULT_GEMINI_INPUTS = {
+  'gemini.safety_settings': '',
+  'gemini.version_settings': '',
+  'gemini.supported_imagine_models': '',
+  'gemini.thinking_adapter_enabled': false,
+  'gemini.thinking_adapter_budget_tokens_percentage': 0.6,
+  'gemini.function_call_thought_signature_enabled': true,
+  'gemini.remove_function_response_id_enabled': true,
+};
+
+>>>>>>> upstream/main
 export default function SettingGeminiModel(props) {
   const { t } = useTranslation();
 
@@ -167,6 +180,43 @@ export default function SettingGeminiModel(props) {
               </Col>
             </Row>
             <Row>
+<<<<<<< HEAD
+=======
+              <Col span={16}>
+                <Form.Switch
+                  label={t('启用FunctionCall思维签名填充')}
+                  field={'gemini.function_call_thought_signature_enabled'}
+                  extraText={t(
+                    '仅为使用OpenAI格式的Gemini/Vertex渠道填充thoughtSignature',
+                  )}
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'gemini.function_call_thought_signature_enabled': value,
+                    })
+                  }
+                />
+              </Col>
+            </Row>
+            <Row>
+              <Col span={16}>
+                <Form.Switch
+                  label={t('移除 functionResponse.id 字段')}
+                  field={'gemini.remove_function_response_id_enabled'}
+                  extraText={t(
+                    'Vertex AI 不支持 functionResponse.id 字段，开启后将自动移除该字段',
+                  )}
+                  onChange={(value) =>
+                    setInputs({
+                      ...inputs,
+                      'gemini.remove_function_response_id_enabled': value,
+                    })
+                  }
+                />
+              </Col>
+            </Row>
+            <Row>
+>>>>>>> upstream/main
               <Col xs={24} sm={12} md={8} lg={8} xl={8}>
                 <Form.TextArea
                   field={'gemini.supported_imagine_models'}

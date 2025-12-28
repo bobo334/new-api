@@ -1,8 +1,11 @@
 package openai
 
 import (
+<<<<<<< HEAD
 	"bytes"
 	"encoding/json"
+=======
+>>>>>>> upstream/main
 	"fmt"
 	"io"
 	"math"
@@ -141,6 +144,27 @@ func OaiStreamHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Re
 		return true
 	})
 
+<<<<<<< HEAD
+=======
+	// 对音频模型，从倒数第二个stream data中提取usage信息
+	if isAudioModel && secondLastStreamData != "" {
+		var streamResp struct {
+			Usage *dto.Usage `json:"usage"`
+		}
+		err := common.Unmarshal([]byte(secondLastStreamData), &streamResp)
+		if err == nil && streamResp.Usage != nil && service.ValidUsage(streamResp.Usage) {
+			usage = streamResp.Usage
+			containStreamUsage = true
+
+			if common.DebugEnabled {
+				logger.LogDebug(c, fmt.Sprintf("Audio model usage extracted from second last SSE: PromptTokens=%d, CompletionTokens=%d, TotalTokens=%d, InputTokens=%d, OutputTokens=%d",
+					usage.PromptTokens, usage.CompletionTokens, usage.TotalTokens,
+					usage.InputTokens, usage.OutputTokens))
+			}
+		}
+	}
+
+>>>>>>> upstream/main
 	// 处理最后的响应
 	shouldSendLastResp := true
 	if err := handleLastResponse(lastStreamData, &responseId, &createAt, &systemFingerprint, &model, &usage,
@@ -255,6 +279,7 @@ func OpenaiHandler(c *gin.Context, info *relaycommon.RelayInfo, resp *http.Respo
 	return &simpleResponse.Usage, nil
 }
 
+<<<<<<< HEAD
 func OpenaiTTSHandler(c *gin.Context, resp *http.Response, info *relaycommon.RelayInfo) *dto.Usage {
 	// the status code has been judged before, if there is a body reading failure,
 	// it should be regarded as a non-recoverable error, so it should not return err for external retry.
@@ -355,6 +380,39 @@ func countAudioTokens(c *gin.Context) (int, error) {
 	}
 
 	return int(math.Round(math.Ceil(duration) / 60.0 * 1000)), nil // 1 minute 相当于 1k tokens
+=======
+func streamTTSResponse(c *gin.Context, resp *http.Response) {
+	c.Writer.WriteHeaderNow()
+
+	flusher, ok := c.Writer.(http.Flusher)
+	if !ok {
+		logger.LogWarn(c, "streaming not supported")
+		_, err := io.Copy(c.Writer, resp.Body)
+		if err != nil {
+			logger.LogWarn(c, err.Error())
+		}
+		return
+	}
+
+	buffer := make([]byte, 4096)
+	for {
+		n, err := resp.Body.Read(buffer)
+		//logger.LogInfo(c, fmt.Sprintf("streamTTSResponse read %d bytes", n))
+		if n > 0 {
+			if _, writeErr := c.Writer.Write(buffer[:n]); writeErr != nil {
+				logger.LogError(c, writeErr.Error())
+				break
+			}
+			flusher.Flush()
+		}
+		if err != nil {
+			if err != io.EOF {
+				logger.LogError(c, err.Error())
+			}
+			break
+		}
+	}
+>>>>>>> upstream/main
 }
 
 func OpenaiRealtimeHandler(c *gin.Context, info *relaycommon.RelayInfo) (*types.NewAPIError, *dto.RealtimeUsage) {
@@ -615,3 +673,60 @@ func OpenaiHandlerWithUsage(c *gin.Context, info *relaycommon.RelayInfo, resp *h
 	}
 	return &usageResp.Usage, nil
 }
+<<<<<<< HEAD
+=======
+
+func applyUsagePostProcessing(info *relaycommon.RelayInfo, usage *dto.Usage, responseBody []byte) {
+	if info == nil || usage == nil {
+		return
+	}
+
+	switch info.ChannelType {
+	case constant.ChannelTypeDeepSeek:
+		if usage.PromptTokensDetails.CachedTokens == 0 && usage.PromptCacheHitTokens != 0 {
+			usage.PromptTokensDetails.CachedTokens = usage.PromptCacheHitTokens
+		}
+	case constant.ChannelTypeZhipu_v4, constant.ChannelTypeMoonshot:
+		if usage.PromptTokensDetails.CachedTokens == 0 {
+			if usage.InputTokensDetails != nil && usage.InputTokensDetails.CachedTokens > 0 {
+				usage.PromptTokensDetails.CachedTokens = usage.InputTokensDetails.CachedTokens
+			} else if cachedTokens, ok := extractCachedTokensFromBody(responseBody); ok {
+				usage.PromptTokensDetails.CachedTokens = cachedTokens
+			} else if usage.PromptCacheHitTokens > 0 {
+				usage.PromptTokensDetails.CachedTokens = usage.PromptCacheHitTokens
+			}
+		}
+	}
+}
+
+func extractCachedTokensFromBody(body []byte) (int, bool) {
+	if len(body) == 0 {
+		return 0, false
+	}
+
+	var payload struct {
+		Usage struct {
+			PromptTokensDetails struct {
+				CachedTokens *int `json:"cached_tokens"`
+			} `json:"prompt_tokens_details"`
+			CachedTokens         *int `json:"cached_tokens"`
+			PromptCacheHitTokens *int `json:"prompt_cache_hit_tokens"`
+		} `json:"usage"`
+	}
+
+	if err := common.Unmarshal(body, &payload); err != nil {
+		return 0, false
+	}
+
+	if payload.Usage.PromptTokensDetails.CachedTokens != nil {
+		return *payload.Usage.PromptTokensDetails.CachedTokens, true
+	}
+	if payload.Usage.CachedTokens != nil {
+		return *payload.Usage.CachedTokens, true
+	}
+	if payload.Usage.PromptCacheHitTokens != nil {
+		return *payload.Usage.PromptCacheHitTokens, true
+	}
+	return 0, false
+}
+>>>>>>> upstream/main
